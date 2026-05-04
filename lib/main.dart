@@ -7,11 +7,12 @@ import 'package:rotaract_app/firebase_options.dart';
 import 'package:rotaract_app/models/usuario_model.dart';
 import 'package:rotaract_app/services/user_service.dart';
 
-// Importação
+// Importação das Screens
 import 'package:rotaract_app/screens/home_screen.dart';
 import 'package:rotaract_app/screens/atas_screen.dart';
 import 'package:rotaract_app/screens/login_screen.dart';
 import 'package:rotaract_app/screens/perfil_screen.dart';
+import 'package:rotaract_app/screens/form_evento_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,7 @@ class RotaractApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Cor rosa oficial do Rotaract
     const Color rosaOficial = Color.fromRGBO(212, 19, 103, 1);
 
     return MaterialApp(
@@ -45,6 +47,7 @@ class RotaractApp extends StatelessWidget {
             );
           }
 
+          // Se estiver logado, busca os dados do usuário no Firestore
           if (snapshot.hasData && snapshot.data != null) {
             return FutureBuilder<UsuarioModel?>(
               future: UserService().getPerfil(snapshot.data!.uid),
@@ -63,6 +66,7 @@ class RotaractApp extends StatelessWidget {
               },
             );
           }
+          // Se não estiver logado, vai para o Login
           return const LoginScreen();
         },
       ),
@@ -83,16 +87,16 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // Lista de telas principais
+    // Lista de telas principais das abas
     final List<Widget> _screens = [
-      HomeScreen(usuario: widget.usuario),
+      HomeScreen(usuario: widget.usuario), // Nova Home com Notificações
       const AtasScreen(),
       // Aba de Presença instrucional
       const Center(
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: Text(
-            'Para realizar uma chamada, selecione um evento na aba Início.',
+            'Para realizar uma chamada, selecione um evento na aba Atas.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
@@ -102,20 +106,49 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
+      // Removi a AppBar daqui para a HomeScreen usar o cabeçalho customizado da foto
+      body: IndexedStack(
+        index: _selectedIndex, 
+        children: _screens
+      ),
+      
+      // Botão flutuante para adicionar eventos (aparece apenas na aba Início)
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FormEventoScreen()),
+                );
+              },
+              backgroundColor: Theme.of(context).primaryColor,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
+          
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
-          BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Atas'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle),
-            label: 'Presença',
+            icon: Icon(Icons.home_filled), 
+            label: 'Início'
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.description_outlined), 
+            label: 'Atas'
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_circle_outline), 
+            label: 'Presença'
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline), 
+            label: 'Perfil'
+          ),
         ],
       ),
     );
