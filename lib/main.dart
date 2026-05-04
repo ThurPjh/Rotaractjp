@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart';
+import 'package:rotaract_app/firebase_options.dart';
 
-// Importação dos seus Models e Services
-import 'models/usuario_model.dart';
-import 'services/user_service.dart';
+// Importação Models e Services
+import 'package:rotaract_app/models/usuario_model.dart';
+import 'package:rotaract_app/services/user_service.dart';
 
-// Importação das suas telas
-import 'screens/home_screen.dart';
-import 'screens/atas_screen.dart';
-import 'screens/presenca_screen.dart';
-import 'screens/login_screen.dart'; 
+// Importação 
+import 'package:rotaract_app/screens/home_screen.dart';
+import 'package:rotaract_app/screens/atas_screen.dart';
+import 'package:rotaract_app/screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,36 +32,38 @@ class RotaractApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: rosaOficial, primary: rosaOficial),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: rosaOficial, 
+          primary: rosaOficial
+        ),
       ),
-      // O StreamBuilder monitora se o usuário está logado ou não
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           }
 
           if (snapshot.hasData && snapshot.data != null) {
-            // Se estiver logado, buscamos o perfil (ADM/Sócio) no Firestore
             return FutureBuilder<UsuarioModel?>(
               future: UserService().getPerfil(snapshot.data!.uid),
               builder: (context, userSnapshot) {
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
                 }
 
                 if (userSnapshot.hasData && userSnapshot.data != null) {
-                  // Entra no app com o perfil carregado
                   return MainNavigation(usuario: userSnapshot.data!);
                 }
 
-                // Se o usuário está no Auth mas não tem documento no Firestore
-                return const LoginScreen(); 
+                return const LoginScreen();
               },
             );
           }
-          // Se não estiver logado, vai para a tela de Login
           return const LoginScreen();
         },
       ),
@@ -83,11 +84,21 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // Lista de telas passando o objeto 'usuario' para elas saberem o cargo
+    // Lista de telas principais
     final List<Widget> _screens = [
       HomeScreen(usuario: widget.usuario),
-      const AtasScreen(), // Você pode passar o usuário aqui depois se precisar
-      const PresencaScreen(),
+      const AtasScreen(),
+      // Aba de Presença instrucional
+      const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text(
+            'Para realizar uma chamada, selecione um evento na aba Início.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ),
+      ),
       const Center(child: Text('Perfil em desenvolvimento')),
     ];
 

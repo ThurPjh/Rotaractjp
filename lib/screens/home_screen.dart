@@ -3,6 +3,7 @@ import '../models/usuario_model.dart';
 import '../models/evento_model.dart';
 import '../services/database.dart';
 import 'form_evento_screen.dart';
+import 'presenca_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final UsuarioModel usuario;
@@ -46,7 +47,10 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Text(
                   'Olá, ${usuario.nome}!',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Text(
                   'Confira os próximos eventos do clube:',
@@ -70,9 +74,7 @@ class HomeScreen extends StatelessWidget {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('Nenhum evento cadastrado.'),
-                  );
+                  return const Center(child: Text('Nenhum evento cadastrado.'));
                 }
 
                 final listaEventos = snapshot.data!;
@@ -104,7 +106,13 @@ class HomeScreen extends StatelessWidget {
                         ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          // Futura tela de detalhes ou presença
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  PresencaScreen(evento: evento),
+                            ),
+                          );
                         },
                       ),
                     );
@@ -115,7 +123,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      
+
       // Botão Flutuante (Você pode esconder isso se o usuario.cargo != 'adm')
       floatingActionButton: FloatingActionButton(
         onPressed: () {

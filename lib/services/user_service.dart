@@ -9,7 +9,7 @@ class UserService {
     try {
       var doc = await _db.collection('usuarios').doc(uid).get();
       if (doc.exists) {
-        return UsuarioModel.fromMap(doc.data()!, doc.id);
+        return UsuarioModel.fromFirestore(doc);
       }
     } catch (e) {
       print("Erro ao buscar perfil: $e");

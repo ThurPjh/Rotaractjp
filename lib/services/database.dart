@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/evento_model.dart'; 
+import '../models/evento_model.dart';
+import '../models/usuario_model.dart';
 
 class DatabaseService {
   final CollectionReference eventosCollection = FirebaseFirestore.instance
@@ -22,5 +23,25 @@ class DatabaseService {
         return snapshot.docs.map((doc) => Evento.fromFirestore(doc)).toList();
       },
     );
+  }
+
+  // Stream para listar todos os usuários cadastrados
+  Stream<List<UsuarioModel>> get membros {
+    return FirebaseFirestore.instance
+        .collection('usuarios')
+        .orderBy('nome')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => UsuarioModel.fromFirestore(doc))
+              .toList(),
+        );
+  }
+
+  // Função para atualizar a lista de IDs de quem foi ao evento
+  Future<void> marcarPresenca(String eventoId, List<String> listaIds) async {
+    return await eventosCollection.doc(eventoId).update({
+      'presencas': listaIds,
+    });
   }
 }
