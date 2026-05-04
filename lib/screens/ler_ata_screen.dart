@@ -8,34 +8,30 @@ class LerAtaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Leitura de Ata"),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Detalhes da Ata")),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(25),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              ata.titulo,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Data da Reunião: ${ata.data}",
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-            const Divider(height: 40),
-            Text(
-              ata.conteudo,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.6,
-                color: Colors.black87,
-              ),
-            ),
+            Text(ata.titulo, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(ata.data, style: const TextStyle(color: Colors.grey)),
+            const Divider(height: 30),
+            const Text("Conteúdo:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(ata.conteudo, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 30),
+            const Text("Lista de Presença Individual:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            ata.nomesPresentes.isEmpty 
+              ? const Text("Nenhum presente registrado.")
+              : Wrap(
+                  spacing: 8,
+                  children: ata.nomesPresentes.map((nome) => Chip(
+                    label: Text(nome, style: const TextStyle(fontSize: 12)),
+                    backgroundColor: Colors.blue.withOpacity(0.1),
+                  )).toList(),
+                ),
           ],
         ),
       ),

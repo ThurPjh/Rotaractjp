@@ -5,7 +5,6 @@ import '../services/database.dart';
 
 class PresencaScreen extends StatefulWidget {
   final Evento evento;
-
   const PresencaScreen({super.key, required this.evento});
 
   @override
@@ -13,45 +12,42 @@ class PresencaScreen extends StatefulWidget {
 }
 
 class _PresencaScreenState extends State<PresencaScreen> {
-  // Lista local para controlar quem está marcado antes de salvar
-  late List<String> _selecionados;
+  // Lista que armazena os IDs dos membros selecionados
+  List<String> _selecionados = [];
 
   @override
   void initState() {
     super.initState();
-    // Começa com quem já estava salvo no banco
+    // Inicia com quem já estava marcado no banco
     _selecionados = List.from(widget.evento.presencas);
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color rosaOficial = Color.fromRGBO(212, 19, 103, 1);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Presença: ${widget.evento.nome}'),
-        backgroundColor: rosaOficial,
+        title: Text("Presença: ${widget.evento.nome}"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: const Icon(Icons.check_circle),
             onPressed: () async {
-              await DatabaseService().marcarPresenca(widget.evento.id, _selecionados);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Presença atualizada com sucesso!')),
+              // ENVIA OS 3 ARGUMENTOS: ID, LISTA e NOME
+              await DatabaseService().marcarPresenca(
+                widget.evento.id,
+                _selecionados,
+                widget.evento.nome,
               );
+              if (mounted) Navigator.pop(context);
             },
           )
         ],
       ),
       body: StreamBuilder<List<UsuarioModel>>(
-        stream: DatabaseService().membros, // Precisa criar essa stream no DatabaseService
+        stream: DatabaseService().membros,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-          final membros = snapshot.data ?? [];
+          final membros = snapshot.data!;
 
           return ListView.builder(
             itemCount: membros.length,
@@ -61,8 +57,7 @@ class _PresencaScreenState extends State<PresencaScreen> {
 
               return CheckboxListTile(
                 title: Text(membro.nome),
-                subtitle: Text(membro.cargo),
-                activeColor: rosaOficial,
+                subtitle: Text(membro.email),
                 value: isSelected,
                 onChanged: (bool? valor) {
                   setState(() {
@@ -76,6 +71,18 @@ class _PresencaScreenState extends State<PresencaScreen> {
               );
             },
           );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        label: const Text("Salvar Presença"),
+        icon: const Icon(Icons.save),
+        onPressed: () async {
+          await DatabaseService().marcarPresenca(
+            widget.evento.id,
+            _selecionados,
+            widget.evento.nome,
+          );
+          if (mounted) Navigator.pop(context);
         },
       ),
     );

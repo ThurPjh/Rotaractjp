@@ -4,22 +4,29 @@ class AtaModel {
   final String id;
   final String titulo;
   final String data;
-  final String conteudo; 
+  final String conteudo;
+  final int quantidadePresentes;
+  final List<String> nomesPresentes;
 
   AtaModel({
     required this.id,
     required this.titulo,
     required this.data,
     required this.conteudo,
+    required this.quantidadePresentes,
+    required this.nomesPresentes,
   });
 
   factory AtaModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final dataMap = doc.data() as Map<String, dynamic>?;
+
     return AtaModel(
       id: doc.id,
-      titulo: data['titulo'] ?? '',
-      data: data['data'] ?? '',
-      conteudo: data['conteudo'] ?? '',
+      titulo: dataMap?['titulo'] ?? 'Sem título',
+      data: dataMap?['data'] ?? '',
+      conteudo: dataMap?['conteudo'] ?? '',
+      quantidadePresentes: dataMap?['quantidadePresentes'] ?? 0,
+      nomesPresentes: List<String>.from(dataMap?['nomesPresentes'] ?? []),
     );
   }
 }
