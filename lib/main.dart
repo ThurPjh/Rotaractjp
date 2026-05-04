@@ -13,6 +13,7 @@ import 'package:rotaract_app/screens/atas_screen.dart';
 import 'package:rotaract_app/screens/login_screen.dart';
 import 'package:rotaract_app/screens/perfil_screen.dart';
 import 'package:rotaract_app/screens/form_evento_screen.dart';
+import 'package:rotaract_app/screens/eventos_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,7 @@ class RotaractApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Cor rosa oficial do Rotaract
-    const Color rosaOficial = Color.fromRGBO(212, 19, 103, 1);
+    const Color rosaOficial = Color.fromRGBO(15, 44, 78, 1);
 
     return MaterialApp(
       title: 'Rotaract JP',
@@ -89,19 +90,10 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     // Lista de telas principais das abas
     final List<Widget> _screens = [
-      HomeScreen(usuario: widget.usuario), // Nova Home com Notificações
-      const AtasScreen(),
-      // Aba de Presença instrucional
-      const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Text(
-            'Para realizar uma chamada, selecione um evento na aba Atas.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ),
-      ),
+      HomeScreen(usuario: widget.usuario), 
+      AtasScreen(usuario: widget.usuario),
+      const EventosScreen(),
+      // Aba de Presença instruciona
       PerfilScreen(usuario: widget.usuario),
     ];
 

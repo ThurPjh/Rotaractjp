@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/database.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 
 class FormEventoScreen extends StatefulWidget {
   const FormEventoScreen({super.key});
@@ -12,6 +12,7 @@ class FormEventoScreen extends StatefulWidget {
 class _FormEventoScreenState extends State<FormEventoScreen> {
   final _nomeController = TextEditingController();
   final _descController = TextEditingController();
+  final TextEditingController _localController = TextEditingController();
   DateTime _dataSelecionada = DateTime.now();
 
   // Função para abrir o calendário do Flutter
@@ -64,8 +65,19 @@ class _FormEventoScreenState extends State<FormEventoScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+
+            TextFormField(
+              controller: _localController,
+              decoration: const InputDecoration(
+                labelText: 'Localização',
+                prefixIcon: Icon(Icons.location_on),
+              ),
+              validator: (value) =>
+                  value!.isEmpty ? 'Por favor, insira o local' : null,
+            ),
+            const SizedBox(height: 16),
             const SizedBox(height: 15),
-            
+
             // Seletor de Data Visual
             ListTile(
               title: const Text("Data do Evento:"),
@@ -78,7 +90,7 @@ class _FormEventoScreenState extends State<FormEventoScreen> {
                 borderRadius: BorderRadius.circular(5),
               ),
             ),
-            
+
             const SizedBox(height: 30),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -98,11 +110,15 @@ class _FormEventoScreenState extends State<FormEventoScreen> {
                   _nomeController.text,
                   _descController.text,
                   _dataSelecionada,
+                  _localController.text,
                 );
-                
+
                 if (mounted) Navigator.pop(context);
               },
-              child: const Text("SALVAR EVENTO E GERAR ATA", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                "SALVAR EVENTO E GERAR ATA",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),

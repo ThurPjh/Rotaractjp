@@ -16,12 +16,13 @@ class DatabaseService {
   }
 
   // Adiciona evento e cria a ata vinculada
-  Future<void> addEvento(String nome, String descricao, DateTime data) async {
+  Future<void> addEvento(String nome, String descricao, DateTime data, String local) async {
     String dataFormatada = "${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}";
 
     await eventosCollection.add({
       'nome': nome,
       'descricao': descricao,
+      'local': local,
       'data': dataFormatada,
       'presencas': [],
       'criadoEm': FieldValue.serverTimestamp(),
@@ -30,7 +31,8 @@ class DatabaseService {
     await atasCollection.add({
       'titulo': "Ata: $nome",
       'data': dataFormatada,
-      'conteudo': "Registro da reunião de $nome.",
+      'local': local,
+      'conteudo': descricao,
       'quantidadePresentes': 0,
       'nomesPresentes': [],
       'criadoEm': FieldValue.serverTimestamp(),
@@ -61,12 +63,22 @@ class DatabaseService {
   }
 
   Stream<List<AtaModel>> get atas {
-    return atasCollection.snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => AtaModel.fromFirestore(doc)).toList());
-  }
+  return atasCollection
+      .orderBy('criadoEm', descending: true) 
+      .snapshots()
+      .map((snapshot) =>
+          snapshot.docs.map((doc) => AtaModel.fromFirestore(doc)).toList());
+}
 
   Stream<List<UsuarioModel>> get membros {
     return usuariosCollection.snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => UsuarioModel.fromFirestore(doc)).toList());
+  }
+
+  // Função para editar o conteúdo da ata
+  Future<void> atualizarConteudoAta(String ataId, String novoConteudo) async {
+    await atasCollection.doc(ataId).update({
+      'conteudo': novoConteudo,
+    });
   }
 }

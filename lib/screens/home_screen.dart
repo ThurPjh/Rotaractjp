@@ -3,11 +3,13 @@ import '../models/usuario_model.dart';
 import '../models/ata_model.dart';
 import '../models/evento_model.dart';
 import '../services/database.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
   final UsuarioModel usuario;
 
   const HomeScreen({super.key, required this.usuario});
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +50,7 @@ class HomeScreen extends StatelessWidget {
               ),
               CircleAvatar(
                 radius: 25,
-                backgroundColor: Colors.amber[300],
+                backgroundColor: const Color.fromARGB(255, 200, 200, 197),
                 child: Text(
                   iniciais,
                   style: TextStyle(color: corPrimaria, fontWeight: FontWeight.bold, fontSize: 18),
@@ -69,7 +71,7 @@ class HomeScreen extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // BUSCA DE DADOS REAIS DO FIREBASE
+        // BUSCA DE DADOS DO FIREBASE
         Expanded(
           child: StreamBuilder<List<AtaModel>>(
             stream: DatabaseService().atas,
@@ -83,10 +85,11 @@ class HomeScreen extends StatelessWidget {
                   // 1. Notificação de Ata Real
                   if (ataSnapshot.hasData && ataSnapshot.data!.isNotEmpty) {
                     final ultimaAta = ataSnapshot.data!.first;
+                    final dataFotmatada = DateFormat('dd/MM/yyyy').format(DateTime.now());
                     notificacoes.add(_buildNotificacaoItem(
                       corBolinha: Colors.blue,
                       titulo: 'Ata publicada: ${ultimaAta.titulo}',
-                      subtitulo: 'Registrada em ${ultimaAta.data}',
+                      subtitulo: 'Registrada em ${dataFotmatada}',
                     ));
                   }
 
@@ -96,7 +99,7 @@ class HomeScreen extends StatelessWidget {
                     notificacoes.add(_buildNotificacaoItem(
                       corBolinha: Colors.orange,
                       titulo: 'Próximo Evento: ${proximoEvento.nome}',
-                      subtitulo: 'Data: ${proximoEvento.descricao}', // ou use o campo de data se tiver
+                      subtitulo: 'Data: ${proximoEvento.data}', 
                     ));
                   }
 

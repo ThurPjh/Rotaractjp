@@ -23,7 +23,6 @@ class Evento {
       nome: dataMap?['nome'] ?? 'Evento sem nome',
       descricao: dataMap?['descricao'] ?? '',
       data: dataMap?['data'] ?? '',
-      // Garante que a lista de presenças nunca seja nula
       presencas: List<String>.from(dataMap?['presencas'] ?? []),
     );
   }
