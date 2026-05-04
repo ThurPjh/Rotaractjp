@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'models/usuario_model.dart';
+import '../models/usuario_model.dart';
 // Se você já tiver o modelo de eventos, importe-o aqui:
 // import 'models/evento_model.dart'; 
 

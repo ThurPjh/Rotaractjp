@@ -8,10 +8,10 @@ import 'models/usuario_model.dart';
 import 'services/user_service.dart';
 
 // Importação das suas telas
-import 'home_screen.dart';
-import 'atas_screen.dart';
-import 'presenca_screen.dart';
-import 'login_screen.dart'; 
+import 'screens/home_screen.dart';
+import 'screens/atas_screen.dart';
+import 'screens/presenca_screen.dart';
+import 'screens/login_screen.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

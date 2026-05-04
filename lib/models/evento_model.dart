@@ -1,27 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EventoModel {
+class Evento {
   final String id;
-  final String titulo;
-  final String local;
+  final String nome;
+  final String descricao;
   final DateTime data;
-  final bool estaAberto;
 
-  EventoModel({
-    required this.id,
-    required this.titulo,
-    required this.local,
-    required this.data,
-    required this.estaAberto,
-  });
+  Evento({required this.id, required this.nome, required this.descricao, required this.data});
 
-  factory EventoModel.fromMap(Map<String, dynamic> data, String documentId) {
-    return EventoModel(
-      id: documentId,
-      titulo: data['titulo'] ?? '',
-      local: data['local'] ?? '',
+  // Converte o que vem do Firebase (JSON) para o nosso objeto Evento
+  factory Evento.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map;
+    return Evento(
+      id: doc.id,
+      nome: data['nome'] ?? '',
+      descricao: data['descricao'] ?? '',
       data: (data['data'] as Timestamp).toDate(),
-      estaAberto: data['esta_aberto'] ?? false,
     );
   }
 }
