@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/evento_model.dart';
 import '../models/usuario_model.dart';
+import '../models/ata_model.dart';
 
 class DatabaseService {
   final CollectionReference eventosCollection = FirebaseFirestore.instance
@@ -42,6 +43,18 @@ class DatabaseService {
   Future<void> marcarPresenca(String eventoId, List<String> listaIds) async {
     return await eventosCollection.doc(eventoId).update({
       'presencas': listaIds,
+    });
+  }
+  
+  Stream<List<AtaModel>> get atas {
+    return FirebaseFirestore.instance
+        .collection('atas')
+        .orderBy('data', descending: true) // Ordena as atas pela data
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return AtaModel.fromFirestore(doc);
+      }).toList();
     });
   }
 }

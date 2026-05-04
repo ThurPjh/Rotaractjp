@@ -7,16 +7,15 @@ import 'package:rotaract_app/firebase_options.dart';
 import 'package:rotaract_app/models/usuario_model.dart';
 import 'package:rotaract_app/services/user_service.dart';
 
-// Importação 
+// Importação
 import 'package:rotaract_app/screens/home_screen.dart';
 import 'package:rotaract_app/screens/atas_screen.dart';
 import 'package:rotaract_app/screens/login_screen.dart';
+import 'package:rotaract_app/screens/perfil_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const RotaractApp());
 }
 
@@ -33,8 +32,8 @@ class RotaractApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: rosaOficial, 
-          primary: rosaOficial
+          seedColor: rosaOficial,
+          primary: rosaOficial,
         ),
       ),
       home: StreamBuilder<User?>(
@@ -99,14 +98,11 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ),
       ),
-      const Center(child: Text('Perfil em desenvolvimento')),
+      PerfilScreen(usuario: widget.usuario),
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
@@ -115,7 +111,10 @@ class _MainNavigationState extends State<MainNavigation> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Atas'),
-          BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: 'Presença'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_circle),
+            label: 'Presença',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
