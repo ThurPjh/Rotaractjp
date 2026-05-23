@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rotaract_app/firebase_options.dart';
+import 'package:provider/provider.dart'; 
 
 // Importação Models e Services
 import 'package:rotaract_app/models/usuario_model.dart';
@@ -14,6 +15,10 @@ import 'package:rotaract_app/screens/login_screen.dart';
 import 'package:rotaract_app/screens/perfil_screen.dart';
 import 'package:rotaract_app/screens/form_evento_screen.dart';
 import 'package:rotaract_app/screens/eventos_screen.dart';
+import 'package:rotaract_app/providers/theme_provider.dart'; 
+
+// 1. Variável Global para controlar o tema
+// ValueNotifier<ThemeMode> temaAtual = ValueNotifier(ThemeMode.light); // Removido, será gerenciado pelo ThemeProvider
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,52 +31,55 @@ class RotaractApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Cor rosa oficial do Rotaract
-    const Color rosaOficial = Color.fromRGBO(15, 44, 78, 1);
+    // const Color rosaOficial = Color.fromRGBO(212, 19, 103, 1); // Removido, temas estáticos em ThemeProvider
 
-    return MaterialApp(
-      title: 'Rotaract JP',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: rosaOficial,
-          primary: rosaOficial,
-        ),
+    // 2. ValueListenableBuilder envolve o MaterialApp para reconstruir ao mudar o tema
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(), // Instancia seu ThemeProvider
+      child: Consumer<ThemeProvider>( // O Consumer reconstrói quando o tema muda
+        builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Rotaract JP',
+          debugShowCheckedModeBanner: false,
+          
+          // Configurações de Tema
+            themeMode: themeProvider.themeMode, // Controlado pelo ThemeProvider
+            theme: ThemeProvider.lightTheme, // Tema claro estático
+            darkTheme: ThemeProvider.darkTheme, // Tema escuro estático
+          home: StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (snapshot.hasData && snapshot.data != null) {
+                return FutureBuilder<UsuarioModel?>(
+                  future: UserService().getPerfil(snapshot.data!.uid),
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    if (userSnapshot.hasData && userSnapshot.data != null) {
+                      return MainNavigation(usuario: userSnapshot.data!);
+                    }
+
+                    return const LoginScreen();
+                  },
+                );
+              }
+              return const LoginScreen();
+            },
+          ),
+        );
+      },
       ),
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          // Se estiver logado, busca os dados do usuário no Firestore
-          if (snapshot.hasData && snapshot.data != null) {
-            return FutureBuilder<UsuarioModel?>(
-              future: UserService().getPerfil(snapshot.data!.uid),
-              builder: (context, userSnapshot) {
-                if (userSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                if (userSnapshot.hasData && userSnapshot.data != null) {
-                  return MainNavigation(usuario: userSnapshot.data!);
-                }
-
-                return const LoginScreen();
-              },
-            );
-          }
-          // Se não estiver logado, vai para o Login
-          return const LoginScreen();
-        },
-      ),
-    );
+                );
   }
 }
 
@@ -88,23 +96,19 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // Lista de telas principais das abas
     final List<Widget> _screens = [
       HomeScreen(usuario: widget.usuario), 
       AtasScreen(usuario: widget.usuario),
       const EventosScreen(),
-      // Aba de Presença instruciona
       PerfilScreen(usuario: widget.usuario),
     ];
 
     return Scaffold(
-      // Removi a AppBar daqui para a HomeScreen usar o cabeçalho customizado da foto
       body: IndexedStack(
         index: _selectedIndex, 
         children: _screens
       ),
       
-      // Botão flutuante para adicionar eventos (aparece apenas na aba Início)
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               onPressed: () {
@@ -122,25 +126,13 @@ class _MainNavigationState extends State<MainNavigation> {
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).primaryColor,
+        selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_filled), 
-            label: 'Início'
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description_outlined), 
-            label: 'Atas'
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle_outline), 
-            label: 'Presença'
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline), 
-            label: 'Perfil'
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Início'),
+          BottomNavigationBarItem(icon: Icon(Icons.description_outlined), label: 'Atas'),
+          BottomNavigationBarItem(icon: Icon(Icons.check_circle_outline), label: 'Presença'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
         ],
       ),
     );
