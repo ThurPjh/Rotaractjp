@@ -10,7 +10,6 @@ class PerfilScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // CORREÇÃO: Buscando a instância do seu ThemeProvider herdado do main.dart
     final themeProvider = Provider.of<ThemeProvider>(context);
     final bool isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 

@@ -16,6 +16,7 @@ import 'package:rotaract_app/screens/perfil_screen.dart';
 import 'package:rotaract_app/screens/form_evento_screen.dart';
 import 'package:rotaract_app/screens/eventos_screen.dart';
 import 'package:rotaract_app/providers/theme_provider.dart'; 
+import 'package:rotaract_app/screens/tesouraria_screen.dart';
 
 // 1. Variável Global para controlar o tema
 // ValueNotifier<ThemeMode> temaAtual = ValueNotifier(ThemeMode.light); // Removido, será gerenciado pelo ThemeProvider
@@ -100,6 +101,7 @@ class _MainNavigationState extends State<MainNavigation> {
       HomeScreen(usuario: widget.usuario), 
       AtasScreen(usuario: widget.usuario),
       const EventosScreen(),
+      TesourariaScreen(usuario: widget.usuario),
       PerfilScreen(usuario: widget.usuario),
     ];
 
@@ -132,7 +134,9 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Início'),
           BottomNavigationBarItem(icon: Icon(Icons.description_outlined), label: 'Atas'),
           BottomNavigationBarItem(icon: Icon(Icons.check_circle_outline), label: 'Presença'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Tesouraria'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
+          
         ],
       ),
     );

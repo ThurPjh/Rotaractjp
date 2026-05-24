@@ -33,16 +33,17 @@ class ThemeProvider with ChangeNotifier {
 
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    primaryColor: rosaOficial,
+    primaryColor: const Color.fromARGB(255, 255, 255, 255),
     colorScheme: const ColorScheme.light(
-      primary: rosaOficial,
-      onPrimary: Colors.white,
+      //backghround do bagulho la em cima
+      primary: Color.fromARGB(255, 255, 255, 255),
+      onPrimary: rosaOficial,
       secondary: Colors.amber,
       surface: Colors.white,
       onSurface: Colors.black87,
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.blue,
+      backgroundColor: rosaOficial,
       foregroundColor: Colors.white,
     ),
     scaffoldBackgroundColor: Colors.white,
@@ -70,7 +71,7 @@ class ThemeProvider with ChangeNotifier {
       onSurface: Colors.white70,
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.deepPurple,
+      backgroundColor: Color.fromRGBO(212, 19, 103, 1),
       foregroundColor: Colors.white,
     ),
     // CORREÇÃO: Removido o uso de colchetes [] em propriedades estáticas

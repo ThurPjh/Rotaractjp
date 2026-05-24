@@ -8,17 +8,17 @@ dependencies:
   shared_preferences: ^2.2.2 
   intl: ^0.20.2
   # Atualize todas as dependências do Firebase para as versões mais recentes e compatíveis
-  firebase_core: ^4.9.0 # Certifique-se de que este está presente
-  firebase_auth: ^6.5.1 # Versão compatível mais recente
-  firebase_database: ^12.4.1 # Aumentar para ^10.4.0 ou superior para compatibilidade
+  firebase_core: ^3.1.0 # Certifique-se de que este está presente
+  firebase_auth: ^5.7.0 # Versão compatível mais recente
+  firebase_database: ^11.0.0 # Aumentar para ^10.4.0 ou superior para compatibilidade
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  cloud_firestore: ^6.4.1 # Adicionado, pois você mencionou Cloud Firestore no contexto técnico
+  cloud_firestore: ^5.0.1 # Adicionado, pois você mencionou Cloud Firestore no contexto técnico
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^4.0.0
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -27,7 +27,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.4
+  sdk: '>=3.4.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -84,3 +84,5 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
+assets:
+    - img/logo.png

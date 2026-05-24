@@ -7,6 +7,7 @@ import 'package:rotaract_app/models/ata_model.dart';
 import 'package:rotaract_app/models/evento_model.dart';
 import 'package:rotaract_app/services/database.dart';
 import 'package:intl/intl.dart';
+ // Certifique-se de que o caminho para a imagem está correto
 
 class HomeScreen extends StatelessWidget {
   final UsuarioModel usuario;
@@ -63,6 +64,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                Image.asset('assets/logo.png', width: 24, height: 24),
                 Row(
                   children: [
                     const SizedBox(width: 8),
@@ -79,7 +81,8 @@ class HomeScreen extends StatelessWidget {
                           fontSize: 18,
                         ),
                       ),
-                    ),Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                    ),
+                    Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
                     Switch(
                       value: isDarkMode,
                       onChanged: (value) {

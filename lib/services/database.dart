@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/evento_model.dart';
 import '../models/usuario_model.dart';
 import '../models/ata_model.dart';
+import '../models/financeiro_model.dart';
 
 class DatabaseService {
   final CollectionReference eventosCollection = FirebaseFirestore.instance.collection('eventos');
   final CollectionReference atasCollection = FirebaseFirestore.instance.collection('atas');
   final CollectionReference usuariosCollection = FirebaseFirestore.instance.collection('usuarios');
+  final CollectionReference financeiroCollection = FirebaseFirestore.instance.collection('financeiro');
 
   // Getter para a HomeScreen (O QUE ESTAVA FALTANDO)
   Stream<List<Evento>> get eventos {
@@ -63,12 +65,12 @@ class DatabaseService {
   }
 
   Stream<List<AtaModel>> get atas {
-  return atasCollection
-      .orderBy('criadoEm', descending: true) 
-      .snapshots()
-      .map((snapshot) =>
-          snapshot.docs.map((doc) => AtaModel.fromFirestore(doc)).toList());
-}
+    return atasCollection
+        .orderBy('criadoEm', descending: true) 
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => AtaModel.fromFirestore(doc)).toList());
+  }
 
   Stream<List<UsuarioModel>> get membros {
     return usuariosCollection.snapshots().map((snapshot) =>
@@ -81,4 +83,26 @@ class DatabaseService {
       'conteudo': novoConteudo,
     });
   }
-}
+
+  Stream<List<FinanceiroModel>> get transacoes {
+    return financeiroCollection
+        .orderBy('criadoEm', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => FinanceiroModel.fromFirestore(doc))
+            .toList());
+  }
+
+  Future<void> addTransacao(String descricao, double valor, String tipo) async {
+    DateTime agora = DateTime.now();
+    String dataFormatada = "${agora.day.toString().padLeft(2, '0')}/${agora.month.toString().padLeft(2, '0')}/${agora.year}";
+
+    await financeiroCollection.add({
+      'descricao': descricao,
+      'valor': valor,
+      'tipo': tipo, // 'entrada' ou 'saida'
+      'data': dataFormatada,
+      'criadoEm': FieldValue.serverTimestamp(),
+    });
+  }
+} 
