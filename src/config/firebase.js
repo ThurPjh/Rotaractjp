@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // adiciona
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyA71tZIUuUrwa3QLyiNubmskRU9EdumhwM",
   authDomain: "rotaractapp.firebaseapp.com",
@@ -12,8 +12,7 @@ const firebaseConfig = {
   measurementId: "G-ZWDPPC96CW"
 };
 
-// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 
-// Exporta o Firestore 
 export const db = getFirestore(app);
+export const auth = getAuth(app); // adiciona
