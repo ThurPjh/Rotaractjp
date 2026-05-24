@@ -11,6 +11,7 @@ import AtasScreen from "./screens/AtasScreen";
 import PresenceScreen from "./screens/PresenceScreen";
 import FinanceScreen from "./screens/FinanceScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import CriarAtaScreen from "./screens/CriarAtaScreen";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -20,6 +21,7 @@ export default function App() {
   const [regimento, setRegimento] = useState(null);
   const [presenceEvents, setPresenceEvents] = useState(INITIAL_PRESENCE);
   const [finance, setFinance] = useState(INITIAL_FINANCE);
+  
 
   const navItems = [
     { id: "home", icon: "🏠", label: "Início" },
@@ -45,7 +47,10 @@ export default function App() {
       <View style={styles.mainContent}>
         {tab === "home" && <HomeScreen user={user} notifications={notifications} atas={atas} presenceEvents={presenceEvents} finance={finance} />}
         {tab === "notif" && <NotificationScreen user={user} notifications={notifications} setNotifications={setNotifications} />}
-        {tab === "atas" && <AtasScreen user={user} atas={atas} setAtas={setAtas} regimento={regimento} setRegimento={setRegimento} />}
+        {/* Passamos uma função para a AtasScreen conseguir mudar a tab para "criarAta" */}
+        {tab === "atas" && <AtasScreen user={user} irParaCriarAta={() => setTab("criarAta")} />}
+        {/* Nova rota mapeada para abrir o formulário do Cloudinary + Firebase */}
+        {tab === "criarAta" && <CriarAtaScreen irParaListaAtas={() => setTab("atas")} />}
         {tab === "presence" && <PresenceScreen user={user} presenceEvents={presenceEvents} setPresenceEvents={setPresenceEvents} />}
         {tab === "finance" && <FinanceScreen user={user} finance={finance} setFinance={setFinance} />}
         {tab === "profile" && <ProfileScreen user={user} setUser={setUser} onLogout={() => setUser(null)} />}

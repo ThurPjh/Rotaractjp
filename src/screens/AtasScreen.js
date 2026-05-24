@@ -1,111 +1,143 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  StyleSheet, 
+  ActivityIndicator, 
+  Alert, 
+  Linking, 
+  TouchableOpacity 
+} from "react-native";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "../config/firebase"; 
 import { COLORS } from "../constants/colors";
-import { can } from "../constants/mockData";
-import { formatDate } from "../utils/formatters";
 
-export default function AtasScreen({ user, atas, setAtas, regimento, setRegimento }) {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [form, setForm] = useState({ title: "", date: "", description: "", fileName: "" });
+export default function AtasScreen({ irParaCriarAta }) {
+  const [atas, setAtas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const canAdd = can(user.role, "add_ata");
+  useEffect(() => {
+    // Conecta na coleção "atas" do seu Firebase
+    const colecaoAtas = collection(db, "atas");
+    const q = query(colecaoAtas); 
 
-  function addAta() {
-    if (!form.title || !form.date) return;
-    setAtas(prev => [...prev, { ...form, id: Date.now(), createdBy: user.name }]);
-    setModalVisible(false);
-    setForm({ title: "", date: "", description: "", fileName: "" });
+    // Escuta mudanças no banco em tempo real
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const listaAtas = [];
+      snapshot.forEach((doc) => {
+        listaAtas.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      setAtas(listaAtas);
+      setLoading(false);
+    }, (error) => {
+      console.error("Erro ao buscar atas: ", error);
+      Alert.alert("Erro", "Não foi possível carregar as atas.");
+      setLoading(false);
+    });
+
+    // Desconecta o listener ao sair da tela para poupar memória
+    return () => unsubscribe();
+  }, []);
+
+  // Função para abrir o documento anexo (link do Cloudinary ou Web)
+  const abrirDocumento = (url) => {
+    if (url) {
+      Linking.openURL(url).catch((err) => 
+        Alert.alert("Erro", "Não foi possível abrir o arquivo anexo.")
+      );
+    }
+  };
+
+  const renderAta = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.title}>{item.titulo || "Ata Sem Título"}</Text>
+      
+      <View style={styles.metaRow}>
+        <Text style={styles.date}>📅 {item.data || "Data não informada"}</Text>
+        <Text style={styles.location}>📍 {item.local || "Local não informado"}</Text>
+      </View>
+
+      <Text style={styles.content}>{item.conteudo || "Sem conteúdo registrado."}</Text>
+      
+      {/* Botão de anexo: Só aparece se houver um link de documento salvo */}
+      {item.urlDocumento ? (
+        <TouchableOpacity 
+          style={styles.documentButton} 
+          onPress={() => abrirDocumento(item.urlDocumento)}
+        >
+          <Text style={styles.documentButtonText}>📄 Visualizar Documento Anexo (PDF/Word)</Text>
+        </TouchableOpacity>
+      ) : null}
+      
+      {/* Seção de presenças do clube */}
+      {item.nomesPresentes && item.nomesPresentes.length > 0 && (
+        <View style={styles.presenceBox}>
+          <Text style={styles.presenceTitle}>
+            👥 Presenças ({item.quantidadePresentes || item.nomesPresentes.length}):
+          </Text>
+          <Text style={styles.presenceList}>
+            {item.nomesPresentes.join(", ")}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY || "#003399"} />
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.topbar}>
-        <Text style={styles.topbarTitle}>Atas</Text>
-        {canAdd && (
-          <TouchableOpacity style={styles.btnAdd} onPress={() => setModalVisible(true)}>
-            <Text style={styles.btnAddText}>+ Adicionar</Text>
-          </TouchableOpacity>
-        )}
+      {/* Cabeçalho com o título da tela e o botão de criar nova ata */}
+      <View style={styles.headerRow}>
+        <Text style={styles.headerTitle}>Atas das Reuniões</Text>
+        <TouchableOpacity style={styles.addButton} onPress={irParaCriarAta}>
+          <Text style={styles.addButtonText}>➕ Nova Ata</Text>
+        </TouchableOpacity>
       </View>
-
-      <ScrollView style={styles.scroll} contentContainerStyle={{ padding: 20 }}>
-        <Text style={styles.sectionTitle}>Atas de Reunião</Text>
-        {atas.length === 0 && (
-          <View style={styles.empty}><Text style={styles.emptyText}>📋 Nenhuma ata registrada</Text></View>
-        )}
-        {atas.slice().reverse().map(a => (
-          <View style={styles.card} key={a.id}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>{a.title}</Text>
-                <Text style={styles.cardMeta}>{formatDate(a.date)} · {a.createdBy}</Text>
-                {a.description ? <Text style={styles.cardDesc}>{a.description}</Text> : null}
-              </View>
-              <Text style={{ fontSize: 24 }}>📄</Text>
-            </View>
-            {a.fileName ? (
-              <View style={styles.attachment}><Text style={styles.attachmentText}>📎 {a.fileName}</Text></View>
-            ) : null}
-          </View>
-        ))}
-      </ScrollView>
-
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Nova Ata</Text>
-            
-            <Text style={styles.label}>Título da Reunião</Text>
-            <TextInput style={styles.input} value={form.title} onChangeText={t=>setForm(p=>({...p,title:t}))} placeholder="Ex: Reunião Ordinária #12" placeholderTextColor="#444" />
-            
-            <Text style={styles.label}>Data</Text>
-            <TextInput style={styles.input} value={form.date} onChangeText={t=>setForm(p=>({...p,date:t}))} placeholder="AAAA-MM-DD" placeholderTextColor="#444" />
-            
-            <Text style={styles.label}>Observações</Text>
-            <TextInput style={[styles.input, { height: 60 }]} multiline value={form.description} onChangeText={t=>setForm(p=>({...p,description:t}))} placeholder="Resumo..." placeholderTextColor="#444" />
-
-            <Text style={styles.label}>Nome do Arquivo (Simulado)</Text>
-            <TextInput style={styles.input} value={form.fileName} onChangeText={t=>setForm(p=>({...p,fileName:t}))} placeholder="ata_doc.pdf" placeholderTextColor="#444" />
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity style={styles.btnCancel} onPress={() => setModalVisible(false)}>
-                <Text style={styles.btnCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.btnSave} onPress={addAta}>
-                <Text style={styles.btnSaveText}>Salvar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      
+      {atas.length === 0 ? (
+        <Text style={styles.emptyText}>Nenhuma ata cadastrada no Firestore.</Text>
+      ) : (
+        <FlatList
+          data={atas}
+          keyExtractor={(item) => item.id}
+          renderItem={renderAta}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-  topbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, borderBottomWidth: 1, borderColor: "#1e1e1e" },
-  topbarTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
-  scroll: { flex: 1 },
-  btnAdd: { backgroundColor: COLORS.PRIMARY, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
-  btnAddText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#fff", marginBottom: 16 },
-  card: { backgroundColor: COLORS.CARD_BG, borderWidth: 1, borderColor: COLORS.BORDER, borderRadius: 16, padding: 16, marginBottom: 12 },
-  cardTitle: { fontSize: 15, fontWeight: "600", color: "#fff" },
-  cardMeta: { fontSize: 12, color: "#555", marginTop: 2 },
-  cardDesc: { fontSize: 13, color: "#777", marginTop: 6 },
-  attachment: { marginTop: 10, padding: 8, backgroundColor: "#111", borderRadius: 10 },
-  attachmentText: { fontSize: 12, color: "#888" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.8)", justifyContent: "flex-end" },
-  modalContent: { backgroundColor: COLORS.CARD_BG, padding: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  modalTitle: { fontSize: 18, fontWeight: "700", color: "#fff", marginBottom: 16 },
-  label: { fontSize: 12, color: "#888", marginBottom: 6, marginTop: 10 },
-  input: { backgroundColor: "#111", borderWidth: 1, borderColor: COLORS.INPUT_BORDER, borderRadius: 12, padding: 12, color: "#fff" },
-  modalFooter: { flexDirection: "row", gap: 10, marginTop: 24 },
-  btnCancel: { flex: 1, padding: 14, backgroundColor: "#222", borderRadius: 12, alignItems: "center" },
-  btnCancelText: { color: "#888", fontWeight: "600" },
-  btnSave: { flex: 2, padding: 14, backgroundColor: COLORS.PRIMARY, borderRadius: 12, alignItems: "center" },
-  btnSaveText: { color: "#fff", fontWeight: "600" },
-  empty: { padding: 20, alignItems: "center" },
-  emptyText: { color: "#555" }
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND || "#f5f5f5", padding: 16 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, marginTop: 8 },
+  headerTitle: { fontSize: 22, fontWeight: "bold", color: COLORS.PRIMARY || "#003399" },
+  addButton: { backgroundColor: COLORS.PRIMARY || "#003399", paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6 },
+  addButtonText: { color: "#fff", fontWeight: "bold", fontSize: 14 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  list: { paddingBottom: 20 },
+  card: { backgroundColor: "#fff", padding: 16, borderRadius: 8, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41, elevation: 2 },
+  title: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  metaRow: { flexDirection: "row", justifyContent: "space-between", marginVertical: 6 },
+  date: { fontSize: 12, color: "#666" },
+  location: { fontSize: 12, color: "#666" },
+  content: { fontSize: 14, color: "#444", marginTop: 4, lineHeight: 20 },
+  documentButton: { backgroundColor: "#e74c3c", padding: 10, borderRadius: 6, marginTop: 12, alignItems: "center" },
+  documentButtonText: { color: "#fff", fontWeight: "bold", fontSize: 13 },
+  presenceBox: { marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#eee" },
+  presenceTitle: { fontSize: 13, fontWeight: "bold", color: COLORS.PRIMARY || "#003399" },
+  presenceList: { fontSize: 13, color: "#555", marginTop: 2, fontStyle: "italic" },
+  emptyText: { textAlign: "center", color: "#999", marginTop: 40, fontSize: 16 }
 });
