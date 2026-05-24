@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from "react-native";
 import { COLORS } from "../constants/colors";
+import { themeStyles } from "../constants/themeStyles"; // 👈 CSS global
 import { can, ROLES } from "../constants/mockData";
 
 export default function ProfileScreen({ user, setUser, onLogout }) {
@@ -20,69 +21,66 @@ export default function ProfileScreen({ user, setUser, onLogout }) {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <View style={styles.topbar}>
-        <Text style={styles.topbarTitle}>Perfil</Text>
-        <TouchableOpacity style={styles.btnEdit} onPress={editing ? saveProfile : () => setEditing(true)}>
-          <Text style={{ color: "#fff", fontWeight: "600" }}>{editing ? "Salvar" : "Editar"}</Text>
+    <ScrollView style={themeStyles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+      <View style={themeStyles.topbar}>
+        <Text style={themeStyles.topbarTitle}>Perfil</Text>
+        <TouchableOpacity style={themeStyles.btnAdd} onPress={editing ? saveProfile : () => setEditing(true)}>
+          <Text style={themeStyles.btnAddText}>{editing ? "Salvar" : "Editar"}</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.hero}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{user.avatar}</Text></View>
+      <View style={{ alignItems: "center", paddingVertical: 24 }}>
+        <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.PRIMARY || "#0a84ff", justifyContent: "center", alignItems: "center", marginBottom: 14 }}>
+          <Text style={{ color: "#fff", fontSize: 28, fontWeight: "700" }}>{user.avatar}</Text>
+        </View>
+        
         {editing ? (
-          <TextInput style={styles.inputCenter} value={form.name} onChangeText={t=>setForm(p=>({...p,name:t}))} />
+          <TextInput style={[themeStyles.input, { width: "70%", textAlign: "center", marginBottom: 8 }]} value={form.name} onChangeText={t=>setForm(p=>({...p,name:t}))} outlineStyle="none" />
         ) : (
-          <Text style={styles.profileName}>{user.name}</Text>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{user.name}</Text>
         )}
-        <View style={styles.roleBadge}><Text style={styles.roleText}>{ROLES[user.role]}</Text></View>
+        
+        <View style={themeStyles.tagBlue}>
+          <Text style={themeStyles.tagTextBlue}>{ROLES[user.role]}</Text>
+        </View>
       </View>
 
       <View style={{ padding: 20 }}>
-        <View style={styles.card}>
-          <View style={styles.fieldRow}>
-            <Text style={{ fontSize: 18 }}>✉️</Text>
-            <View>
-              <Text style={styles.fieldLabel}>E-mail</Text>
-              <Text style={styles.fieldValue}>{user.email}</Text>
-            </View>
+        <View style={themeStyles.card}>
+          <View style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: "#1e2026" }}>
+            <Text style={themeStyles.metaText}>E-mail</Text>
+            <Text style={{ fontSize: 14, color: "#fff", marginTop: 2 }}>{user.email}</Text>
           </View>
           
-          <View style={styles.fieldRow}>
-            <Text style={{ fontSize: 18 }}>📱</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>Telefone</Text>
-              {editing ? (
-                <TextInput style={styles.inputInline} value={form.phone} onChangeText={t=>setForm(p=>({...p,phone:t}))} />
-              ) : (
-                <Text style={styles.fieldValue}>{user.phone || "Não informado"}</Text>
-              )}
-            </View>
+          <View style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: "#1e2026" }}>
+            <Text style={themeStyles.metaText}>Telefone</Text>
+            {editing ? (
+              <TextInput style={[themeStyles.input, { marginTop: 4 }]} value={form.phone} onChangeText={t=>setForm(p=>({...p,phone:t}))} outlineStyle="none" />
+            ) : (
+              <Text style={{ fontSize: 14, color: "#fff", marginTop: 2 }}>{user.phone || "Não informado"}</Text>
+            )}
           </View>
 
-          <View style={[styles.fieldRow, { borderBottomWidth: 0 }]}>
-            <Text style={{ fontSize: 18 }}>📝</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>Bio</Text>
-              {editing ? (
-                <TextInput style={styles.inputInline} multiline value={form.bio} onChangeText={t=>setForm(p=>({...p,bio:t}))} />
-              ) : (
-                <Text style={styles.fieldValue}>{user.bio || "Sem bio"}</Text>
-              )}
-            </View>
+          <View style={{ paddingVertical: 12 }}>
+            <Text style={themeStyles.metaText}>Bio</Text>
+            {editing ? (
+              <TextInput style={[themeStyles.input, { marginTop: 4 }]} multiline value={form.bio} onChangeText={t=>setForm(p=>({...p,bio:t}))} outlineStyle="none" />
+            ) : (
+              <Text style={{ fontSize: 14, color: "#fff", marginTop: 2 }}>{user.bio || "Sem bio"}</Text>
+            )}
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.permHeader}>Permissões do cargo</Text>
+        <View style={themeStyles.card}>
+          <Text style={[themeStyles.cardTitle, { marginBottom: 12, fontSize: 13, textTransform: "uppercase" }]}>Permissões do cargo</Text>
           {permissionsList.map(p => {
             const hasPerm = can(user.role, p.action);
             return (
-              <View key={p.action} style={styles.permRow}>
+              <View key={p.action} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10 }}>
                 <Text style={{ fontSize: 16 }}>{p.icon}</Text>
-                <Text style={{ flex: 1, color: "#ccc", fontSize: 14 }}>{p.label}</Text>
-                <View style={[styles.permTag, { backgroundColor: hasPerm ? "rgba(52,199,89,0.15)" : "rgba(255,255,255,0.05)" }]}>
-                  <Text style={{ color: hasPerm ? COLORS.GREEN : "#666", fontSize: 12, fontWeight: "600" }}>
+                <Text style={{ flex: 1, color: "#a0aec0", fontSize: 14 }}>{p.label}</Text>
+                <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, backgroundColor: hasPerm ? "rgba(52,199,89,0.15)" : "#1e2026" }}>
+                  <Text style={{ color: hasPerm ? (COLORS.GREEN || "#34c759") : "#666", fontSize: 11, fontWeight: "600" }}>
                     {hasPerm ? "✓ Sim" : "— Não"}
                   </Text>
                 </View>
@@ -91,34 +89,10 @@ export default function ProfileScreen({ user, setUser, onLogout }) {
           })}
         </View>
 
-        <TouchableOpacity style={styles.btnLogout} onPress={onLogout}>
-          <Text style={styles.btnLogoutText}>Sair da conta</Text>
+        <TouchableOpacity style={{ backgroundColor: "rgba(255,59,48,0.1)", borderWidth: 1, borderColor: "rgba(255,59,48,0.2)", borderRadius: 12, padding: 16, alignItems: "center", marginTop: 8 }} onPress={onLogout}>
+          <Text style={{ color: COLORS.RED || "#ff3b30", fontWeight: "600", fontSize: 15 }}>Sair da conta</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-  topbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, borderBottomWidth: 1, borderColor: "#1e1e1e" },
-  topbarTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
-  btnEdit: { backgroundColor: COLORS.PRIMARY, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
-  hero: { alignItems: "center", paddingVertical: 24, borderBottomWidth: 1, borderColor: "#1e1e1e" },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.PRIMARY, justifyContent: "center", alignItems: "center", marginBottom: 14 },
-  avatarText: { color: "#fff", fontSize: 28, fontWeight: "700" },
-  profileName: { fontSize: 22, fontWeight: "800", color: "#fff" },
-  roleBadge: { backgroundColor: "rgba(233,20,103,0.15)", paddingHorizontal: 14, paddingVertical: 4, borderRadius: 20, marginTop: 6 },
-  roleText: { color: COLORS.PRIMARY_LIGHT, fontSize: 12, fontWeight: "600", textTransform: "uppercase" },
-  card: { backgroundColor: COLORS.CARD_BG, borderWidth: 1, borderColor: COLORS.BORDER, borderRadius: 16, padding: 16, marginBottom: 12 },
-  fieldRow: { flexDirection: "row", gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderColor: "#1e1e1e", alignItems: "center" },
-  fieldLabel: { fontSize: 12, color: "#666" },
-  fieldValue: { fontSize: 14, color: "#eee", marginTop: 2 },
-  permHeader: { fontSize: 13, color: "#666", marginBottom: 12, textTransform: "uppercase" },
-  permRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderColor: "#1e1e1e" },
-  permTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
-  inputCenter: { backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 10, width: "60%", textAlign: "center" },
-  inputInline: { backgroundColor: "#111", color: "#fff", padding: 6, borderRadius: 8, marginTop: 4, fontSize: 14 },
-  btnLogout: { backgroundColor: "rgba(255,59,48,0.1)", borderWidth: 1, borderColor: "rgba(255,59,48,0.2)", borderRadius: 12, padding: 16, alignItems: "center", marginTop: 8 },
-  btnLogoutText: { color: COLORS.RED, fontWeight: "600", fontSize: 15 }
-});

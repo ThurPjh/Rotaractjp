@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { COLORS } from "../constants/colors";
+import { themeStyles } from "../constants/themeStyles"; // Importando seu novo CSS global
 
 // ==========================================
-// CONFIGURAÇÃO DO CLOUDINARY (Garanta que suas chaves estão aqui!)
-const CLOUD_NAME = "dnicdt3qe"; 
+// CONFIGURAÇÃO DO CLOUDINARY
+const CLOUD_NAME = "dnicdt3que"; 
 const UPLOAD_PRESET = "s3asftce"; 
 // ==========================================
 
@@ -41,14 +41,17 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
     
     const formData = new FormData();
     
+    // Remove qualquer extensão do nome para evitar o bug do ".pdf.pdf" que bloqueia a entrega
+    const nomeLimpo = arquivo.name.replace(/\.[^/.]+$/, "");
+    
     if (Platform.OS === 'web') {
       const response = await fetch(arquivo.uri);
       const blob = await response.blob();
-      formData.append("file", blob, arquivo.name);
+      formData.append("file", blob, nomeLimpo);
     } else {
       formData.append("file", {
         uri: arquivo.uri,
-        name: arquivo.name,
+        name: nomeLimpo,
         type: arquivo.mimeType || "application/pdf",
       });
     }
@@ -67,7 +70,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
     }
 
     const dadosDoUpload = await resposta.json();
-    return dadosDoUpload.secure_url; // Retorna a URL limpa e original
+    return dadosDoUpload.secure_url; // Retorna a URL limpa e original do Cloudinary
   };
 
   const salvarAta = async () => {
@@ -119,51 +122,67 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Título da Reunião *</Text>
-      <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} placeholder="Ex: Reunião Ordinária 15" />
+    <ScrollView contentContainerStyle={[themeStyles.container, { paddingVertical: 20 }]}>
+      {/* Box centralizado seguindo o padrão de inputs escuros do seu Modal */}
+      <View style={themeStyles.formBox}>
+        <Text style={themeStyles.topbarTitle}>📝 Registrar Nova Ata</Text>
 
-      <Text style={styles.label}>Data *</Text>
-      <TextInput style={styles.input} value={data} onChangeText={setData} placeholder="Ex: 24/05/2026" />
+        <Text style={themeStyles.label}>Título da Reunião *</Text>
+        <TextInput 
+          style={themeStyles.input} 
+          value={titulo} 
+          onChangeText={setTitulo} 
+          placeholder="Ex: Reunião Ordinária 15" 
+          placeholderTextColor="#555" 
+        />
 
-      <Text style={styles.label}>Local</Text>
-      <TextInput style={styles.input} value={local} onChangeText={setLocal} placeholder="Ex: Casa da Amizade" />
+        <Text style={themeStyles.label}>Data *</Text>
+        <TextInput 
+          style={themeStyles.input} 
+          value={data} 
+          onChangeText={setData} 
+          placeholder="Ex: 24/05/2026" 
+          placeholderTextColor="#555" 
+        />
 
-      <Text style={styles.label}>Conteúdo da Ata *</Text>
-      <TextInput 
-        style={[styles.input, styles.textArea]} 
-        value={conteudo} 
-        onChangeText={setConteudo} 
-        placeholder="Digite o resumo das discussões..." 
-        multiline
-        numberOfLines={6}
-      />
+        <Text style={themeStyles.label}>Local</Text>
+        <TextInput 
+          style={themeStyles.input} 
+          value={local} 
+          onChangeText={setLocal} 
+          placeholder="Ex: Casa da Amizade" 
+          placeholderTextColor="#555" 
+        />
 
-      <Text style={styles.label}>Documento Oficial (PDF do WhatsApp)</Text>
-      <TouchableOpacity style={styles.fileButton} onPress={selecionarDocumento}>
-        <Text style={styles.fileButtonText}>
-          {documento ? `📎 PDF Selecionado: ${documento.name}` : "📂 Selecionar PDF do Dispositivo"}
-        </Text>
-      </TouchableOpacity>
+        <Text style={themeStyles.label}>Conteúdo da Ata *</Text>
+        <TextInput 
+          style={[themeStyles.input, themeStyles.textArea]} 
+          value={conteudo} 
+          onChangeText={setConteudo} 
+          placeholder="Digite o resumo das discussões..." 
+          placeholderTextColor="#555"
+          multiline
+          numberOfLines={6}
+        />
 
-      {enviando ? (
-        <ActivityIndicator size="large" color={COLORS.PRIMARY || "#003399"} style={{ marginTop: 20 }} />
-      ) : (
-        <TouchableOpacity style={styles.saveButton} onPress={salvarAta}>
-          <Text style={styles.saveButtonText}>💾 Gravar Ata no Sistema</Text>
+        <Text style={themeStyles.label}>Documento Oficial (PDF do WhatsApp)</Text>
+        <TouchableOpacity 
+          style={[themeStyles.btnSecondary, documento && themeStyles.btnSecondaryActive]} 
+          onPress={selecionarDocumento}
+        >
+          <Text style={themeStyles.btnSecondaryText}>
+            {documento ? `📎 PDF Selecionado: ${documento.name}` : "📂 Selecionar PDF do Dispositivo"}
+          </Text>
         </TouchableOpacity>
-      )}
+
+        {enviando ? (
+          <ActivityIndicator size="large" color="#0a84ff" style={{ marginTop: 24 }} />
+        ) : (
+          <TouchableOpacity style={themeStyles.btnSave} onPress={salvarAta}>
+            <Text style={themeStyles.btnSaveText}>💾 Gravar Ata no Sistema</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: "#fff" },
-  label: { fontSize: 14, fontWeight: "bold", color: "#333", marginBottom: 6, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 6, padding: 10, fontSize: 15, backgroundColor: "#f9f9f9" },
-  textArea: { textAlignVertical: "top", height: 120 },
-  fileButton: { backgroundColor: "#f0f0f0", padding: 12, borderRadius: 6, alignItems: "center", borderStyle: "dashed", borderWidth: 1, borderColor: "#999", marginTop: 4 },
-  fileButtonText: { color: "#555", fontWeight: "600" },
-  saveButton: { backgroundColor: COLORS.PRIMARY || "#003399", padding: 15, borderRadius: 6, alignItems: "center", marginTop: 24 },
-  saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 }
-});
