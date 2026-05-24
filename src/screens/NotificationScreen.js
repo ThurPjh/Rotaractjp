@@ -1,87 +1,96 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput } from "react-native";
-import { COLORS } from "../constants/colors";
-import { themeStyles } from "../constants/themeStyles"; // 👈 Importando o tema unificado
+import { collection, onSnapshot, addDoc, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { db } from "../config/firebase";
+import { themeStyles } from "../constants/themeStyles";
 import { can } from "../constants/mockData";
 import { formatDate } from "../utils/formatters";
 
-export default function NotificationScreen({ user, notifications, setNotifications }) {
+export default function NotificationScreen({ user }) {
+  const [reunioes, setReunioes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [form, setForm] = useState({ type: "reuniao", title: "", date: "", location: "", description: "" });
+  const [form, setForm] = useState({ title: "", date: "", location: "", description: "" });
 
-  function addNotif() {
+  // 1. Escuta em tempo real as reuniões do Firebase
+  useEffect(() => {
+    const q = query(collection(db, "reunioes"), orderBy("date", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setReunioes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return unsubscribe;
+  }, []);
+
+  // 2. Função para o admin publicar reunião
+  async function publicarReuniao() {
     if (!form.title || !form.date) return;
-    setNotifications(prev => [...prev, { ...form, id: Date.now(), createdBy: user.name }]);
+    await addDoc(collection(db, "reunioes"), {
+      ...form,
+      criadoEm: serverTimestamp(),
+      criadoPor: user.name
+    });
     setModalVisible(false);
-    setForm({ type: "reuniao", title: "", date: "", location: "", description: "" });
+    setForm({ title: "", date: "", location: "", description: "" });
   }
 
   const canAdd = can(user.role, "add_notification");
 
   return (
     <View style={themeStyles.container}>
-      {/* Topbar unificada */}
       <View style={themeStyles.topbar}>
-        <Text style={themeStyles.topbarTitle}>Notificações</Text>
+        <Text style={themeStyles.topbarTitle}>Reuniões</Text>
         {canAdd && (
           <TouchableOpacity style={themeStyles.btnAdd} onPress={() => setModalVisible(true)}>
-            <Text style={themeStyles.btnAddText}>+ Criar</Text>
+            <Text style={themeStyles.btnAddText}>+ Nova Reunião</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-        {notifications.length === 0 && (
-          <View style={themeStyles.empty}>
-            <Text style={themeStyles.emptyText}>🔔 Nenhuma notificação criada</Text>
-          </View>
-        )}
-        
-        {notifications.slice().reverse().map(n => (
-          <View style={themeStyles.card} key={n.id}>
-            <View style={themeStyles.cardHeader}>
-              <View style={n.type === "reuniao" ? themeStyles.tagBlue : themeStyles.tagBlue}>
-                <Text style={themeStyles.tagTextBlue}>{n.type === "reuniao" ? "📍 Reunião" : "📄 Ata"}</Text>
+        {reunioes.length === 0 ? (
+          <View style={themeStyles.empty}><Text style={themeStyles.emptyText}>Nenhuma reunião publicada.</Text></View>
+        ) : (
+          reunioes.map(n => (
+            <View style={themeStyles.card} key={n.id}>
+              <View style={themeStyles.cardHeader}>
+                <View style={themeStyles.tagBlue}>
+                  <Text style={themeStyles.tagTextBlue}>📍 Reunião</Text>
+                </View>
+                <Text style={themeStyles.metaText}>{n.date}</Text>
               </View>
-              <Text style={themeStyles.metaText}>{formatDate(n.date)}</Text>
+              <Text style={themeStyles.cardTitle}>{n.title}</Text>
+              {n.location ? <Text style={[themeStyles.metaText, { marginTop: 4 }]}>📌 {n.location}</Text> : null}
+              {n.description ? <Text style={themeStyles.descText}>{n.description}</Text> : null}
             </View>
-            
-            <Text style={themeStyles.cardTitle}>{n.title}</Text>
-            {n.location ? <Text style={[themeStyles.metaText, { fontSize: 13 }]}>📌 {n.location}</Text> : null}
-            {n.description ? <Text style={themeStyles.descText}>{n.description}</Text> : null}
-          </View>
-        ))}
+          ))
+        )}
       </ScrollView>
 
-      {/* Modal de Nova Notificação */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "flex-end" }}>
-          <View style={themeStyles.formBox}>
-            <Text style={themeStyles.topbarTitle}>Nova Notificação</Text>
-            
-            <Text style={themeStyles.label}>Título</Text>
-            <TextInput style={themeStyles.input} value={form.title} onChangeText={t=>setForm(p=>({...p,title:t}))} placeholder="Ex: Reunião Ordinária" placeholderTextColor="#444" outlineStyle="none" />
-            
-            <Text style={themeStyles.label}>Data (AAAA-MM-DD)</Text>
-            <TextInput style={themeStyles.input} value={form.date} onChangeText={t=>setForm(p=>({...p,date:t}))} placeholder="Ex: 2026-05-27" placeholderTextColor="#444" outlineStyle="none" />
+      {/* Modal só abre para quem tem permissão */}
+      {canAdd && (
+        <Modal visible={modalVisible} animationType="slide" transparent>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "flex-end" }}>
+            <View style={themeStyles.formBox}>
+              <Text style={themeStyles.topbarTitle}>Nova Reunião</Text>
+              
+              <Text style={themeStyles.label}>Título</Text>
+              <TextInput style={themeStyles.input} placeholder="Ex: Reunião Ordinária" value={form.title} onChangeText={t => setForm(p => ({...p, title: t}))} />
+              
+              <Text style={themeStyles.label}>Data (DD/MM/AAAA)</Text>
+              <TextInput style={themeStyles.input} placeholder="24/05/2026" value={form.date} onChangeText={t => setForm(p => ({...p, date: t}))} />
 
-            <Text style={themeStyles.label}>Localização</Text>
-            <TextInput style={themeStyles.input} value={form.location} onChangeText={t=>setForm(p=>({...p,location:t}))} placeholder="Ex: Sede" placeholderTextColor="#444" outlineStyle="none" />
+              <Text style={themeStyles.label}>Local</Text>
+              <TextInput style={themeStyles.input} placeholder="Casa da Amizade" value={form.location} onChangeText={t => setForm(p => ({...p, location: t}))} />
 
-            <Text style={themeStyles.label}>Descrição</Text>
-            <TextInput style={[themeStyles.input, themeStyles.textArea]} multiline value={form.description} onChangeText={t=>setForm(p=>({...p,description:t}))} placeholder="Detalhes..." placeholderTextColor="#444" outlineStyle="none" />
+              <Text style={themeStyles.label}>Descrição</Text>
+              <TextInput style={[themeStyles.input, { height: 80 }]} multiline placeholder="Pauta da reunião..." value={form.description} onChangeText={t => setForm(p => ({...p, description: t}))} />
 
-            <View style={{ flexDirection: "row", gap: 12, marginTop: 28 }}>
-              <TouchableOpacity style={{ flex: 1, padding: 14, backgroundColor: "#1e2026", borderRadius: 12, alignItems: "center" }} onPress={() => setModalVisible(false)}>
-                <Text style={{ color: "#a0aec0", fontWeight: "600" }}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[themeStyles.btnSave, { flex: 2, marginTop: 0 }]} onPress={addNotif}>
-                <Text style={themeStyles.btnSaveText}>Publicar</Text>
+              <TouchableOpacity style={[themeStyles.btnSave, { marginTop: 24 }]} onPress={publicarReuniao}>
+                <Text style={themeStyles.btnSaveText}>Publicar Reunião</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
