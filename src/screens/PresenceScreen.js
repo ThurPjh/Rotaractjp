@@ -1,26 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Modal } from "react-native";
-import { COLORS } from "../constants/colors";
-import { themeStyles } from "../constants/themeStyles"; // 👈 Importando o tema unificado
-import { can, ROLES } from "../constants/mockData";
-import { formatDate } from "../utils/formatters";
+import { collection, onSnapshot, doc, updateDoc, query, orderBy } from "firebase/firestore";
+import { db } from "../config/firebase";
+import { themeStyles } from "../constants/themeStyles";
+import { ROLES } from "../constants/mockData";
 
-export default function PresenceScreen({ user, presenceEvents, setPresenceEvents }) {
-  const [tab, setTab] = useState("reuniao");
+export default function PresenceScreen({ user }) {
+  const [events, setEvents] = useState([]);
   const [activeEvent, setActiveEvent] = useState(null);
 
-  const canAdd = can(user.role, "add_presence");
-  const filtered = presenceEvents.filter(e => e.type === tab);
+  // 1. Monitora a coleção 'reunioes' em tempo real
+  useEffect(() => {
+    const q = query(collection(db, "reunioes"), orderBy("criadoEm", "desc"));
+    return onSnapshot(q, (snapshot) => {
+      const listaEtg = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setEvents(listaEtg);
 
-  function togglePresence(eventId, memberId) {
-    if (!canAdd) return;
-    setPresenceEvents(prev => prev.map(e => {
-      if (e.id !== eventId) return e;
-      return { 
-        ...e, 
-        members: e.members.map(m => m.id === memberId ? { ...m, present: !m.present } : m) 
-      };
-    }));
+      // Mantém o modal atualizado em tempo real se ele estiver aberto
+      if (activeEvent) {
+        const eventoAtualizado = listaEtg.find(e => e.id === activeEvent.id);
+        if (eventoAtualizado) setActiveEvent(eventoAtualizado);
+      }
+    });
+  }, [activeEvent?.id]);
+
+  // 2. Validação de permissão flexível idêntica à tela de notificações
+  const userRole = user?.role || user?.cargo || "";
+  const podeMarcarPresenca = 
+    userRole.toLowerCase() === "presidente" || 
+    userRole.toLowerCase() === "secretario" || 
+    userRole.toLowerCase() === "admin" ||
+    !userRole; // Failsafe para permitir testes caso o objeto venha incompleto
+
+  // 3. Função para alternar a presença no Firestore
+  async function togglePresence(memberId, currentStatus) {
+    if (!podeMarcarPresenca) {
+      alert("Apenas a diretoria pode marcar presença.");
+      return;
+    }
+
+    try {
+      const eventRef = doc(db, "reunioes", activeEvent.id);
+      
+      // Mapeia os membros invertendo o status da pessoa clicada
+      const updatedMembers = (activeEvent.members || []).map(m => 
+        m.id === memberId ? { ...m, present: !currentStatus } : m
+      );
+
+      // Atualiza o documento diretamente no Firebase
+      await updateDoc(eventRef, { members: updatedMembers });
+    } catch (error) {
+      console.error("Erro ao atualizar presença:", error);
+      alert("Erro ao salvar presença: " + error.message);
+    }
   }
 
   return (
@@ -29,73 +61,66 @@ export default function PresenceScreen({ user, presenceEvents, setPresenceEvents
         <Text style={themeStyles.topbarTitle}>Presença</Text>
       </View>
 
-      {/* Tabs utilizando o estilo de tag unificado */}
-      <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 20, marginTop: 12 }}>
-        <TouchableOpacity style={[{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20 }, tab === "reuniao" ? themeStyles.tagBlue : { backgroundColor: "#1e2026" }]} onPress={() => setTab("reuniao")}>
-          <Text style={{ color: tab === "reuniao" ? "#fff" : "#a0aec0", fontWeight: "600", fontSize: 13 }}>Reuniões</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20 }, tab === "projeto" ? themeStyles.tagBlue : { backgroundColor: "#1e2026" }]} onPress={() => setTab("projeto")}>
-          <Text style={{ color: tab === "projeto" ? "#fff" : "#a0aec0", fontWeight: "600", fontSize: 13 }}>Projetos</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-        {filtered.length === 0 && (
-          <View style={themeStyles.empty}><Text style={themeStyles.emptyText}>✅ Nenhum evento registrado</Text></View>
-        )}
-        {filtered.slice().reverse().map(ev => {
-          const currentEv = presenceEvents.find(e => e.id === ev.id) || ev;
-          const total = currentEv.members.length;
-          const present = currentEv.members.filter(m => m.present).length;
-          const pct = total ? Math.round((present / total) * 100) : 0;
-          
-          return (
-            <TouchableOpacity style={themeStyles.card} key={ev.id} onPress={() => setActiveEvent(currentEv)}>
-              <View style={themeStyles.cardHeader}>
-                <View>
-                  <Text style={themeStyles.cardTitle}>{ev.title}</Text>
-                  <Text style={themeStyles.metaText}>{formatDate(ev.date)}</Text>
-                </View>
-                <View style={{ alignItems: "flex-end" }}>
-                  <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.PRIMARY || "#0a84ff" }}>{pct}%</Text>
-                  <Text style={themeStyles.metaText}>{present}/{total}</Text>
-                </View>
-              </View>
-              {/* Barra de progresso integrada ao tema escuro */}
-              <View style={{ height: 6, backgroundColor: "#111216", borderRadius: 3, overflow: "hidden" }}>
-                <View style={{ height: "100%", width: `${pct}%`, backgroundColor: COLORS.PRIMARY || "#0a84ff", borderRadius: 3 }} />
-              </View>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        {events.length === 0 ? (
+          <Text style={{ color: "#666", textAlign: "center", marginTop: 40 }}>
+            Nenhuma reunião disponível para chamada.
+          </Text>
+        ) : (
+          events.map(ev => (
+            <TouchableOpacity style={themeStyles.card} key={ev.id} onPress={() => setActiveEvent(ev)}>
+              <Text style={themeStyles.cardTitle}>{ev.title}</Text>
+              <Text style={themeStyles.metaText}>📅 {ev.date}</Text>
             </TouchableOpacity>
-          );
-        })}
+          ))
+        )}
       </ScrollView>
 
-      {/* Modal de Detalhes e Check-in */}
+      {/* Modal: Lista de Membros e Chamada */}
       <Modal visible={!!activeEvent} animationType="slide" transparent>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "flex-end" }}>
           <View style={themeStyles.formBox}>
             {activeEvent && (
               <>
                 <Text style={themeStyles.topbarTitle}>{activeEvent.title}</Text>
-                <Text style={[themeStyles.metaText, { marginBottom: 16 }]}>{canAdd ? "Toque para alterar presença" : "Somente visualização"}</Text>
                 
-                <ScrollView style={{ maxHeight: 300, marginVertical: 12 }}>
-                  {(presenceEvents.find(e => e.id === activeEvent.id)?.members || []).map(m => (
-                    <TouchableOpacity key={m.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderColor: "#1e2026" }} onPress={() => togglePresence(activeEvent.id, m.id)} disabled={!canAdd}>
-                      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.PRIMARY || "#0a84ff", justifyContent: "center", alignItems: "center" }}>
-                        <Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>{m.avatar}</Text>
+                <ScrollView style={{ maxHeight: 400, marginVertical: 15 }}>
+                  {(activeEvent.members || []).map(m => (
+                    <View key={m.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderColor: "#1e2026" }}>
+                      
+                      {/* Avatar */}
+                      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "#0a84ff", justifyContent: "center", alignItems: "center" }}>
+                        <Text style={{ color: "#fff", fontWeight: "700" }}>{m.avatar}</Text>
                       </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 14, color: "#fff", fontWeight: "500" }}>{m.name}</Text>
-                        <Text style={themeStyles.metaText}>{ROLES[m.role]}</Text>
+                      
+                      {/* Nome e Cargo */}
+                      <View style={{ marginLeft: 12, flex: 1 }}>
+                        <Text style={{ color: "#fff", fontWeight: "500" }}>{m.name}</Text>
+                        <Text style={themeStyles.metaText}>{ROLES[m.role] || m.role}</Text>
                       </View>
-                      <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: m.present ? COLORS.PRIMARY : "#4a5568", backgroundColor: m.present ? COLORS.PRIMARY : "transparent" }} />
-                    </TouchableOpacity>
+                      
+                      {/* Botão de Check / Círculo de Presença */}
+                      <TouchableOpacity onPress={() => togglePresence(m.id, m.present)}>
+                        <View style={{ 
+                          width: 24, 
+                          height: 24, 
+                          borderRadius: 12, 
+                          borderWidth: 2, 
+                          borderColor: m.present ? "#34c759" : "#4a5568", 
+                          backgroundColor: m.present ? "#34c759" : "transparent",
+                          justifyContent: "center",
+                          alignItems: "center"
+                        }}>
+                          {m.present && <Text style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}>✓</Text>}
+                        </View>
+                      </TouchableOpacity>
+
+                    </View>
                   ))}
                 </ScrollView>
                 
                 <TouchableOpacity style={themeStyles.btnSave} onPress={() => setActiveEvent(null)}>
-                  <Text style={themeStyles.btnSaveText}>Fechar</Text>
+                  <Text style={themeStyles.btnSaveText}>Fechar Chamada</Text>
                 </TouchableOpacity>
               </>
             )}
