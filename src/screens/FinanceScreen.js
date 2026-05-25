@@ -270,5 +270,6 @@ export default function FinanceScreen({ user }) {
         </View>
       </Modal>
     </View>
+    //teste
   );
 }
