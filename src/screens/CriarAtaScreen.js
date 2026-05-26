@@ -7,7 +7,7 @@ import { themeStyles } from "../constants/themeStyles"; // Importando seu novo C
 
 // ==========================================
 // CONFIGURAÇÃO DO CLOUDINARY
-const CLOUD_NAME = "dnicdt3que"; 
+const CLOUD_NAME = "dnicdt3qe"; 
 const UPLOAD_PRESET = "s3asftce"; 
 // ==========================================
 
@@ -132,7 +132,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           style={themeStyles.input} 
           value={titulo} 
           onChangeText={setTitulo} 
-          placeholder="Ex: Reunião Ordinária 15" 
+          placeholder="Ex: Reunião 15" 
           placeholderTextColor="#555" 
         />
 
@@ -140,9 +140,23 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
         <TextInput 
           style={themeStyles.input} 
           value={data} 
-          onChangeText={setData} 
-          placeholder="Ex: 24/05/2026" 
+          onChangeText={t => {
+
+            const apenasNumeros = t.replace(/\D/g, "");
+            let dataFormatada = apenasNumeros;
+            if (apenasNumeros.length > 2) {
+              dataFormatada = `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2)}`;
+            }
+            if (apenasNumeros.length > 4) {
+              dataFormatada = `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2, 4)}/${apenasNumeros.slice(4, 8)}`;
+            }
+            setData(dataFormatada);
+          }} 
+          placeholder="DD/MM/AAAA" 
+          maxLength={10} 
+          keyboardType="numeric" 
           placeholderTextColor="#555" 
+          disabled={enviando}
         />
 
         <Text style={themeStyles.label}>Local</Text>
