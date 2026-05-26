@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { COLORS } from "./constants/colors";
 
-// Importações dos novos arquivos modularizados
-import { INITIAL_FINANCE, INITIAL_NOTIFS, INITIAL_ATAS, INITIAL_PRESENCE } from "./constants/mockData";
+// Importações dos arquivos modularizados e componentes
+import { INITIAL_NOTIFS, INITIAL_PRESENCE } from "./constants/mockData";
 import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
 import NotificationScreen from "./screens/NotificationScreen";
@@ -17,16 +17,13 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("home");
   const [notifications, setNotifications] = useState(INITIAL_NOTIFS);
-  const [atas, setAtas] = useState(INITIAL_ATAS);
-  const [regimento, setRegimento] = useState(null);
   const [presenceEvents, setPresenceEvents] = useState(INITIAL_PRESENCE);
-  const [finance, setFinance] = useState(INITIAL_FINANCE);
-  
 
+  // Array utilizando Emojis universais de alta compatibilidade
   const navItems = [
     { id: "home", icon: "🏠", label: "Início" },
     { id: "notif", icon: "🔔", label: "Avisos" },
-    { id: "atas", icon: "📋", label: "Atas" },
+    { id: "atas", icon: "📝", label: "Atas" },
     { id: "presence", icon: "✅", label: "Presença" },
     { id: "finance", icon: "💰", label: "Tesouro" },
     { id: "profile", icon: "👤", label: "Perfil" },
@@ -44,25 +41,34 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
+      
       <View style={styles.mainContent}>
-        {tab === "home" && <HomeScreen user={user} notifications={notifications} atas={atas} presenceEvents={presenceEvents} finance={finance} />}
+        {tab === "home" && <HomeScreen user={user} />}
         {tab === "notif" && <NotificationScreen user={user} notifications={notifications} setNotifications={setNotifications} />}
-        {/* Passamos uma função para a AtasScreen conseguir mudar a tab para "criarAta" */}
         {tab === "atas" && <AtasScreen user={user} irParaCriarAta={() => setTab("criarAta")} />}
-        {/* Nova rota mapeada para abrir o formulário do Cloudinary + Firebase */}
         {tab === "criarAta" && <CriarAtaScreen irParaListaAtas={() => setTab("atas")} />}
         {tab === "presence" && <PresenceScreen user={user} presenceEvents={presenceEvents} setPresenceEvents={setPresenceEvents} />}
-        {tab === "finance" && <FinanceScreen user={user} finance={finance} setFinance={setFinance} />}
+        {tab === "finance" && <FinanceScreen user={user} />}
         {tab === "profile" && <ProfileScreen user={user} setUser={setUser} onLogout={() => setUser(null)} />}
       </View>
 
+      {/* Menu Inferior Estilizado com Feedback de Seleção */}
       <View style={styles.bottomNav}>
         {navItems.map(n => {
           const isActive = tab === n.id;
           return (
-            <TouchableOpacity key={n.id} style={styles.navItem} onPress={() => setTab(n.id)}>
-              <Text style={[styles.navIcon, isActive && { color: COLORS.PRIMARY }]}>{n.icon}</Text>
-              <Text style={[styles.navLabel, isActive && { color: COLORS.PRIMARY }]}>{n.label}</Text>
+            <TouchableOpacity 
+              key={n.id} 
+              style={[styles.navItem, isActive && styles.navItemActive]} 
+              onPress={() => setTab(n.id)}
+            >
+              {/* O emoji herda a opacidade caso não esteja ativo, criando uma hierarquia visual limpa */}
+              <Text style={[styles.navIcon, !isActive && { opacity: 0.4 }]}>
+                {n.icon}
+              </Text>
+              <Text style={[styles.navLabel, isActive && { color: COLORS.PRIMARY, fontWeight: "700" }]}>
+                {n.label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -74,8 +80,34 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
   mainContent: { flex: 1, paddingBottom: 10 },
-  bottomNav: { flexDirection: "row", justifyContent: "space-around", backgroundColor: "#0f0f0f", borderTopWidth: 1, borderColor: "#1e1e1e", paddingVertical: 10 },
-  navItem: { alignItems: "center", justifyContent: "center" },
-  navIcon: { fontSize: 20, color: "#444" },
-  navLabel: { fontSize: 10, color: "#444", marginTop: 4, fontWeight: "500" },
+  bottomNav: { 
+    flexDirection: "row", 
+    justifyContent: "space-around", 
+    backgroundColor: "#0f0f0f", 
+    borderTopWidth: 1, 
+    borderColor: "#1e1e1e", 
+    paddingVertical: 12,
+    paddingHorizontal: 6
+  },
+  navItem: { 
+    alignItems: "center", 
+    justifyContent: "center", 
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 8
+  },
+  // Dá um efeito sutil de "pílula" cinza escura por trás do botão que estiver ativo
+  navItemActive: {
+    backgroundColor: "#16161a",
+  },
+  navIcon: { 
+    fontSize: 20, 
+    marginBottom: 2 
+  },
+  navLabel: { 
+    fontSize: 10, 
+    color: "#666", 
+    marginTop: 2, 
+    fontWeight: "500" 
+  },
 });

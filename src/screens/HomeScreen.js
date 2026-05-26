@@ -5,6 +5,8 @@ import { db } from "../config/firebase";
 import { COLORS } from "../constants/colors";
 import { themeStyles } from "../constants/themeStyles";
 import { formatCurrency, formatDate } from "../utils/formatters";
+import { Icon } from 'react-native-elements';
+
 
 export default function HomeScreen({ user }) {
   // Estados dinâmicos para dados do Firestore
@@ -44,7 +46,7 @@ export default function HomeScreen({ user }) {
       unsubscribeReunioes();
       unsubscribeRecentes();
       unsubscribeFinancas();
-      unsubscribeAtas(); // 👈 Limpa o listener de atas
+      unsubscribeAtas();
     };
   }, []);
 
@@ -57,7 +59,7 @@ export default function HomeScreen({ user }) {
 
   // Mapeamento correto dos contadores do Dashboard
   const totalAvisos = reunioes.length;
-  const totalAtas = atas.length; // 👈 Agora puxa direto da tabela 'atas' do banco
+  const totalAtas = atas.length; 
   const totalEventos = reunioes.length; 
 
   return (

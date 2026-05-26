@@ -30,8 +30,17 @@ export const themeStyles = StyleSheet.create({
   topbarTitle: { 
     fontSize: 20, 
     fontWeight: "700", 
-    color: "#fff" 
+    color: "#fff"
   },
+
+  topbarTitleNot: { 
+    fontSize: 20, 
+    fontWeight: "700", 
+    color: "#fff",
+    marginBottom: 16
+
+  },
+  
   
   // Botões de Ação Principais (Adicionar/Nova Ata)
   btnAdd: { 
@@ -118,12 +127,15 @@ export const themeStyles = StyleSheet.create({
     padding: 12, 
     color: "#fff",
     fontSize: 15,
-    outlineStyle: "none" // Remove a borda azul feia do navegador
+    outlineStyle: "none",
+    marginBottom: 16,
   },
   textArea: {
     textAlignVertical: "top",
     height: 120
   },
+
+  ql: { padding: 6 },
 
   // Botões Grandes de Formulário (Salvar/Gravar)
   btnSave: { 

@@ -114,7 +114,7 @@ export default function NotificationScreen({ user }) {
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", padding: 20 }}>
           <View style={themeStyles.formBox}>
-            <Text style={themeStyles.topbarTitle}>Agendar Reunião</Text>
+            <Text style={themeStyles.topbarTitleNot}>Agendar Reunião</Text>
             
             <TextInput 
               style={themeStyles.input} 
@@ -123,7 +123,7 @@ export default function NotificationScreen({ user }) {
               value={form.title} 
               onChangeText={t => setForm(p => ({...p, title: t}))} 
             />
-            
+          
             <TextInput 
               style={themeStyles.input} 
               placeholder="Data (DD/MM/AAAA)" 
