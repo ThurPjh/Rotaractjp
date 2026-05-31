@@ -13,7 +13,7 @@ export default function HomeScreen({ user }) {
   const [reunioes, setReunioes] = useState([]);
   const [recentes, setRecentes] = useState([]);
   const [financas, setFinancas] = useState([]);
-  const [atas, setAtas] = useState([]); // 👈 Novo estado para a coleção de atas
+  const [atas, setAtas] = useState([]); 
 
   // Escuta os dados reais do Firebase em tempo real
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function HomeScreen({ user }) {
               </Text>
             </View>
             <Text style={[themeStyles.metaText, { fontSize: 12, marginTop: 2 }]}>
-              📅 {formatDate(n.date || n.data)} {n.location || n.local ? ` · 📌 ${n.location || n.local}` : ""}
+              📅 {(n.date || n.data)} {n.location || n.local ? ` · 📌 ${n.location || n.local}` : ""}
             </Text>
             {(n.description || n.desc || n.pauta) ? (
               <Text style={[themeStyles.descText, { marginTop: 8 }]}>

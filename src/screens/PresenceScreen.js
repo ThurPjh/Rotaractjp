@@ -83,7 +83,6 @@ export default function PresenceScreen({ user }) {
             {activeEvent && (
               <>
                 <Text style={themeStyles.topbarTitle}>{activeEvent.title}</Text>
-                
                 <ScrollView style={{ maxHeight: 400, marginVertical: 15 }}>
                   {(activeEvent.members || []).map(m => (
                     <View key={m.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderColor: "#1e2026" }}>
