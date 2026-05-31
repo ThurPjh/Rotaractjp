@@ -127,12 +127,12 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
       <View style={themeStyles.formBox}>
         <Text style={themeStyles.topbarTitle}>📝 Registrar Nova Ata</Text>
 
-        <Text style={themeStyles.label}>Título da Reunião *</Text>
+        <Text style={themeStyles.label}>Título da Ata *</Text>
         <TextInput 
           style={themeStyles.input} 
           value={titulo} 
           onChangeText={setTitulo} 
-          placeholder="Ex: Reunião 15" 
+          placeholder="Ex: Ata Reunião 15" 
           placeholderTextColor="#555" 
         />
 
@@ -152,7 +152,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
             }
             setData(dataFormatada);
           }} 
-          placeholder="DD/MM/AAAA" 
+          placeholder="dd/mm/aaaa" 
           maxLength={10} 
           keyboardType="numeric" 
           placeholderTextColor="#555" 
