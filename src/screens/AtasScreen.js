@@ -56,7 +56,6 @@ export default function AtasScreen({ irParaCriarAta }) {
 
   const renderAta = ({ item }) => (
     <View style={themeStyles.card}>
-      {/* Cabeçalho do Card: Data à esquerda, Botão do PDF em estilo Tag à direita */}
       <View style={themeStyles.cardHeader}>
         <Text style={themeStyles.metaText}>📅 {item.data || "Data não informada"}</Text>
         
@@ -70,7 +69,7 @@ export default function AtasScreen({ irParaCriarAta }) {
         ) : null}
       </View>
 
-      {/* Título e Local da Reunião */}
+
       <Text style={themeStyles.cardTitle}>{item.titulo || "Ata Sem Título"}</Text>
       <Text style={themeStyles.metaText}>📍 {item.local || "Local não informado"}</Text>
 

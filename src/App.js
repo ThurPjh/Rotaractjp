@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { COLORS } from "./constants/colors";
 
+// 1. IMPORTAÇÃO DOS ÍCONES (Lucide é padrão e super elegante)
+import { Home, Bell, FileText, CheckCircle, DollarSign, User } from "lucide-react-native";
+
 // Importações dos arquivos modularizados e componentes
 import { INITIAL_NOTIFS, INITIAL_PRESENCE } from "./constants/mockData";
 import LoginScreen from "./screens/LoginScreen";
@@ -19,14 +22,14 @@ export default function App() {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFS);
   const [presenceEvents, setPresenceEvents] = useState(INITIAL_PRESENCE);
 
-  // Array utilizando Emojis universais de alta compatibilidade
+  // 2. ARRAY DE PROPRIEDADES ATUALIZADO PASSANDO O COMPONENTE DO ÍCONE DIRETO
   const navItems = [
-    { id: "home", icon: "🏠", label: "Início" },
-    { id: "notif", icon: "🔔", label: "Avisos" },
-    { id: "atas", icon: "📝", label: "Atas" },
-    { id: "presence", icon: "✅", label: "Presença" },
-    { id: "finance", icon: "💰", label: "Tesouro" },
-    { id: "profile", icon: "👤", label: "Perfil" },
+    { id: "home", icon: Home, label: "Início" },
+    { id: "notif", icon: Bell, label: "Avisos" },
+    { id: "atas", icon: FileText, label: "Atas" },
+    { id: "presence", icon: CheckCircle, label: "Presença" },
+    { id: "finance", icon: DollarSign, label: "Tesouro" },
+    { id: "profile", icon: User, label: "Perfil" },
   ];
 
   if (!user) {
@@ -52,20 +55,27 @@ export default function App() {
         {tab === "profile" && <ProfileScreen user={user} setUser={setUser} onLogout={() => setUser(null)} />}
       </View>
 
-      {/* Menu Inferior Estilizado com Feedback de Seleção */}
+      {/* Menu Inferior Estilizado com Ícones Dinâmicos */}
       <View style={styles.bottomNav}>
         {navItems.map(n => {
           const isActive = tab === n.id;
+          
+          // 3. CAPTURA O COMPONENTE DO ÍCONE DA LISTA DINAMICAMENTE
+          const IconComponent = n.icon;
+
           return (
             <TouchableOpacity 
               key={n.id} 
               style={[styles.navItem, isActive && styles.navItemActive]} 
               onPress={() => setTab(n.id)}
             >
-              {/* O emoji herda a opacidade caso não esteja ativo, criando uma hierarquia visual limpa */}
-              <Text style={[styles.navIcon, !isActive && { opacity: 0.4 }]}>
-                {n.icon}
-              </Text>
+              {/* 4. RENDERIZA O ÍCONE CONTROLANDO A COR E OPACIDADE DINAMICAMENTE */}
+              <IconComponent 
+                size={20} 
+                color={isActive ? COLORS.PRIMARY : "#666"} 
+                style={[styles.navIcon, !isActive && { opacity: 0.6 }]} 
+              />
+              
               <Text style={[styles.navLabel, isActive && { color: COLORS.PRIMARY, fontWeight: "700" }]}>
                 {n.label}
               </Text>
@@ -86,23 +96,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#0f0f0f", 
     borderTopWidth: 1, 
     borderColor: "#1e1e1e", 
-    paddingVertical: 12,
+    paddingVertical: 10, // Diminuído levemente para balancear o tamanho dos novos ícones
     paddingHorizontal: 6
   },
   navItem: { 
     alignItems: "center", 
     justifyContent: "center", 
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 8
   },
-  // Dá um efeito sutil de "pílula" cinza escura por trás do botão que estiver ativo
   navItemActive: {
     backgroundColor: "#16161a",
   },
   navIcon: { 
-    fontSize: 20, 
-    marginBottom: 2 
+    marginBottom: 4 
   },
   navLabel: { 
     fontSize: 10, 
