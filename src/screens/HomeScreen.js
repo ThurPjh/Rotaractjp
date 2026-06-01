@@ -6,6 +6,7 @@ import { COLORS } from "../constants/colors";
 import { themeStyles } from "../constants/themeStyles";
 import { formatCurrency, formatDate } from "../utils/formatters";
 import { Icon } from 'react-native-elements';
+import { Calendar, MapPin, Users, FileText, Plus, Trash2 } from "lucide-react-native";
 
 
 export default function HomeScreen({ user }) {
@@ -115,6 +116,7 @@ export default function HomeScreen({ user }) {
               </Text>
             </View>
             <Text style={[themeStyles.metaText, { fontSize: 12, marginTop: 2 }]}>
+              
               📅 {(n.date || n.data)} {n.location || n.local ? ` · 📌 ${n.location || n.local}` : ""}
             </Text>
             {(n.description || n.desc || n.pauta) ? (

@@ -6,7 +6,7 @@ import { db } from "../config/firebase";
 import { themeStyles } from "../constants/themeStyles";
 
 
-import DateTimePicker from '@react-native-community/datetimepicker';
+//import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function NotificationScreen({ user }) {
   const [reunioes, setReunioes] = useState([]);
@@ -128,7 +128,17 @@ export default function NotificationScreen({ user }) {
           reunioes.map(n => (
             <View style={themeStyles.card} key={n.id}>
               <Text style={themeStyles.cardTitle}>{n.title}</Text>
-              <Text style={themeStyles.metaText}>📅 {n.date} • 📍 {n.location}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+                  <Calendar size={14} color="#E91467" style={{ marginRight: 4 }} />
+                  <Text style={themeStyles.metaText}> {n.date}</Text>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+                  <MapPin size={14} color="#E91467" style={{ marginRight: 4 }} />
+                  <Text style={themeStyles.metaText}> {n.location}</Text>
+                </View>
+       
+              
 
               {/* Botão de excluir visível apenas para a diretoria */}
               {temPermissao && (

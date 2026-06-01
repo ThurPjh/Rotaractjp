@@ -6,22 +6,26 @@ import {
   ActivityIndicator, 
   Alert, 
   Linking, 
-  TouchableOpacity 
+  TouchableOpacity,
+  Platform 
 } from "react-native";
-import { collection, onSnapshot, query } from "firebase/firestore";
+// 1. Adicionado o 'doc' e 'deleteDoc' para o Firebase
+import { collection, onSnapshot, query, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../config/firebase"; 
-import { themeStyles } from "../constants/themeStyles"; // Importando seu novo CSS global
+import { themeStyles } from "../constants/themeStyles";
 
-export default function AtasScreen({ irParaCriarAta }) {
+// 2. Importação dos Ícones profissionais do Lucide
+import { Calendar, MapPin, Users, FileText, Plus, Trash2 } from "lucide-react-native";
+
+// 3. Recebendo o 'user' via props para controle de privilégios de exclusão
+export default function AtasScreen({ irParaCriarAta, user }) {
   const [atas, setAtas] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Conecta na coleção "atas" do seu Firebase Firestore
     const colecaoAtas = collection(db, "atas");
     const q = query(colecaoAtas); 
 
-    // Escuta as mudanças no banco de dados em tempo real
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const listaAtas = [];
       snapshot.forEach((doc) => {
@@ -35,53 +39,113 @@ export default function AtasScreen({ irParaCriarAta }) {
       setLoading(false);
     }, (error) => {
       console.error("Erro ao buscar atas: ", error);
-      Alert.alert("Erro", "Não foi possível carregar as atas.");
+      if (Platform.OS === 'web') alert("Não foi possível carregar as atas.");
+      else Alert.alert("Erro", "Não foi possível carregar as atas.");
       setLoading(false);
     });
 
-    // Desconecta o listener ao sair da tela para poupar memória
     return () => unsubscribe();
   }, []);
 
-  // Abre o PDF bruto usando o leitor oficial do Google para evitar erros em ambiente Web
+  // 4. Função nativa de exclusão com travas de segurança
+  async function deletarAta(idAta, tituloAta) {
+    const executarDelecao = async () => {
+      try {
+        await deleteDoc(doc(db, "atas", idAta));
+        if (Platform.OS === 'web') alert("Ata excluída com sucesso!");
+        else Alert.alert("Sucesso", "Ata excluída com sucesso!");
+      } catch (error) {
+        console.error("Erro ao deletar ata:", error);
+        if (Platform.OS === 'web') alert("Erro ao excluir: " + error.message);
+        else Alert.alert("Erro", "Não foi possível excluir a ata.");
+      }
+    };
+
+    // Alerta específico por plataforma
+    if (Platform.OS === 'web') {
+      const confirmar = window.confirm(`Tem certeza que deseja deletar a "${tituloAta}"?`);
+      if (confirmar) executarDelecao();
+    } else {
+      Alert.alert(
+        "Excluir Ata",
+        `Tem certeza que deseja excluir a "${tituloAta}"? Esta ação não pode ser desfeita.`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Excluir", style: "destructive", onPress: executarDelecao }
+        ]
+      );
+    }
+  }
+
   const abrirDocumento = (url) => {
     if (url) {
       const urlDoLeitor = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`;
-      
-      Linking.openURL(urlDoLeitor).catch((err) => 
-        Alert.alert("Erro", "Não foi possível abrir o arquivo anexo.")
-      );
+      Linking.openURL(urlDoLeitor).catch((err) => {
+        if (Platform.OS === 'web') alert("Não foi possível abrir o arquivo anexo.");
+        else Alert.alert("Erro", "Não foi possível abrir o arquivo anexo.");
+      });
     }
   };
+
+  // 5. Validação flexível do cargo administrativo
+  const userRole = user?.role || user?.cargo || "";
+  const temPermissao = 
+    userRole.toLowerCase() === "presidente" || 
+    userRole.toLowerCase() === "secretario" || 
+    userRole.toLowerCase() === "admin" ||
+    !userRole;
 
   const renderAta = ({ item }) => (
     <View style={themeStyles.card}>
       <View style={themeStyles.cardHeader}>
-        <Text style={themeStyles.metaText}>📅 {item.data || "Data não informada"}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Calendar size={14} color="#E91467" style={{ marginRight: 4 }} />
+          <Text style={themeStyles.metaText}>{item.data || "Data não informada"}</Text>
+        </View>
         
         {item.urlDocumento ? (
           <TouchableOpacity 
-            style={themeStyles.tagBlue} 
+            style={[themeStyles.tagBlue, { flexDirection: "row", alignItems: "center" }]} 
             onPress={() => abrirDocumento(item.urlDocumento)}
           >
-            <Text style={themeStyles.tagTextBlue}>📄 Ver PDF</Text>
+            <FileText size={12} color="#0a84ff" style={{ marginRight: 4 }} />
+            <Text style={themeStyles.tagTextBlue}>Ver PDF</Text>
           </TouchableOpacity>
         ) : null}
       </View>
 
+      {/* Título Alinhado com o botão de Lixeira lateral */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 6 }}>
+        <Text style={[themeStyles.cardTitle, { flex: 1, marginRight: 10 }]}>
+          {item.titulo || "Ata Sem Título"}
+        </Text>
+        
+        {/* Lixeira visível apenas para quem tem permissão */}
+        {temPermissao && (
+          <TouchableOpacity 
+            onPress={() => deletarAta(item.id, item.titulo || "Ata")}
+            style={{ padding: 6 }}
+          >
+            <Trash2 size={18} color="#ff3b30" />
+          </TouchableOpacity>
+        )}
+      </View>
 
-      <Text style={themeStyles.cardTitle}>{item.titulo || "Ata Sem Título"}</Text>
-      <Text style={themeStyles.metaText}>📍 {item.local || "Local não informado"}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4, marginBottom: 8 }}>
+        <MapPin size={14} color="#E91467" style={{ marginRight: 4 }} />
+        <Text style={themeStyles.metaText}>{item.local || "Local não informado"}</Text>
+      </View>
 
-      {/* Conteúdo/Resumo da Ata */}
       <Text style={themeStyles.descText}>{item.conteudo || "Sem conteúdo registrado."}</Text>
       
-      {/* Seção de presenças mapeada com o estilo escuro do tema */}
       {item.nomesPresentes && item.nomesPresentes.length > 0 && (
         <View style={{ marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderColor: "#1e2026" }}>
-          <Text style={[themeStyles.metaText, { fontWeight: "600", color: "#fff", marginBottom: 2 }]}>
-            👥 Presenças ({item.quantidadePresentes || item.nomesPresentes.length}):
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+            <Users size={14} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={[themeStyles.metaText, { fontWeight: "600", color: "#fff" }]}>
+              Presenças ({item.quantidadePresentes || item.nomesPresentes.length}):
+            </Text>
+          </View>
           <Text style={[themeStyles.descText, { marginTop: 0, fontSize: 13, fontStyle: "italic" }]}>
             {item.nomesPresentes.join(", ")}
           </Text>
@@ -100,11 +164,13 @@ export default function AtasScreen({ irParaCriarAta }) {
 
   return (
     <View style={themeStyles.container}>
-      {/* Topbar idêntica à de notificações */}
       <View style={themeStyles.topbar}>
         <Text style={themeStyles.topbarTitle}>Atas das Reuniões</Text>
         <TouchableOpacity style={themeStyles.btnAdd} onPress={irParaCriarAta}>
-          <Text style={themeStyles.btnAddText}>➕ Nova Ata</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Plus size={16} color="#fff" style={{ marginRight: 4 }} />
+            <Text style={themeStyles.btnAddText}>Nova Ata</Text>
+          </View>
         </TouchableOpacity>
       </View>
       
@@ -117,7 +183,7 @@ export default function AtasScreen({ irParaCriarAta }) {
           data={atas}
           keyExtractor={(item) => item.id}
           renderItem={renderAta}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
         />
       )}
     </View>

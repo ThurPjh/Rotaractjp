@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { COLORS } from "./constants/colors";
 
-// 1. IMPORTAÇÃO DOS ÍCONES (Lucide é padrão e super elegante)
-import { Home, Bell, FileText, CheckCircle, DollarSign, User } from "lucide-react-native";
+// Importação dos ícones da biblioteca Lucide React Native
+import { Home, Bell, FileText, CheckCircle, DollarSign, User, Users } from "lucide-react-native";
 
 // Importações dos arquivos modularizados e componentes
 import { INITIAL_NOTIFS, INITIAL_PRESENCE } from "./constants/mockData";
@@ -25,10 +25,10 @@ export default function App() {
   // 2. ARRAY DE PROPRIEDADES ATUALIZADO PASSANDO O COMPONENTE DO ÍCONE DIRETO
   const navItems = [
     { id: "home", icon: Home, label: "Início" },
-    { id: "notif", icon: Bell, label: "Avisos" },
+    { id: "notif", icon: Users, label: "Reuniões" },
     { id: "atas", icon: FileText, label: "Atas" },
     { id: "presence", icon: CheckCircle, label: "Presença" },
-    { id: "finance", icon: DollarSign, label: "Tesouro" },
+    { id: "finance", icon: DollarSign, label: "Tesouraria" },
     { id: "profile", icon: User, label: "Perfil" },
   ];
 

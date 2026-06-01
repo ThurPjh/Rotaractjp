@@ -4,6 +4,7 @@ import { collection, onSnapshot, doc, updateDoc, query, orderBy } from "firebase
 import { db } from "../config/firebase";
 import { themeStyles } from "../constants/themeStyles";
 import { ROLES } from "../constants/mockData";
+import { Calendar } from "lucide-react-native";
 
 export default function PresenceScreen({ user }) {
   const [events, setEvents] = useState([]);
@@ -67,12 +68,49 @@ export default function PresenceScreen({ user }) {
             Nenhuma reunião disponível para chamada.
           </Text>
         ) : (
-          events.map(ev => (
-            <TouchableOpacity style={themeStyles.card} key={ev.id} onPress={() => setActiveEvent(ev)}>
-              <Text style={themeStyles.cardTitle}>{ev.title}</Text>
-              <Text style={themeStyles.metaText}>📅 {ev.date}</Text>
-            </TouchableOpacity>
-          ))
+          events.map(ev => {
+            // LÓGICA DA BARRA DE PROGRESSO DINÂMICA
+            const totalMembros = ev.members?.length || 0;
+            const presentes = ev.members?.filter(m => m.present).length || 0;
+            
+            // Calcula a porcentagem (evita divisão por zero se a lista de membros estiver vazia)
+            const porcentagem = totalMembros > 0 ? Math.round((presentes / totalMembros) * 100) : 0;
+
+            return (
+              <TouchableOpacity style={themeStyles.card} key={ev.id} onPress={() => setActiveEvent(ev)}>
+                
+                {/* Linha do Título e Porcentagem lado a lado */}
+                <View style={{ flexDirection: "row", justifyContent: "between", alignItems: "center" }}>
+                  <Text style={[themeStyles.cardTitle, { flex: 1, marginBottom: 0 }]}>{ev.title}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: "700", color: porcentagem >= 70 ? "#34c759" : "#ff9500" }}>
+                    {porcentagem}%
+                  </Text>
+                </View>
+
+                {/* Data do Evento */}
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, marginBottom: 12 }}>
+                  <Calendar size={14} color="#E91467" style={{ marginRight: 4 }} />
+                  <Text style={themeStyles.metaText}>{ev.date}</Text>
+                </View>
+
+                {/* BARRA DE PROGRESSO */}
+                <View style={{ height: 6, backgroundColor: "#111216", borderRadius: 3, overflow: "hidden" }}>
+                  <View style={{ 
+                    height: "100%", 
+                    borderRadius: 3,
+                    width: `${porcentagem}%`,
+                    backgroundColor: porcentagem >= 70 ? "#E91467" : "#E91467"
+                  }} />
+                </View>
+
+                {/* Subtexto Informativo */}
+                <Text style={[themeStyles.metaText, { fontSize: 11, marginTop: 4, textAlign: "right" }]}>
+                  {presentes} de {totalMembros} presentes
+                </Text>
+
+              </TouchableOpacity>
+            );
+          })
         )}
       </ScrollView>
 
