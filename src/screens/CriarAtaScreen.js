@@ -3,7 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityInd
 import * as DocumentPicker from "expo-document-picker";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { themeStyles } from "../constants/themeStyles"; // Importando seu novo CSS global
+import { themeStyles } from "../constants/themeStyles";
+import { Calendar, MapPin, Users, FileText, Plus, Trash2, Folder } from "lucide-react-native";
+
 
 // ==========================================
 // CONFIGURAÇÃO DO CLOUDINARY
@@ -125,9 +127,9 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
     <ScrollView contentContainerStyle={[themeStyles.container, { paddingVertical: 20 }]}>
       {/* Box centralizado seguindo o padrão de inputs escuros do seu Modal */}
       <View style={themeStyles.formBox}>
-        <Text style={themeStyles.topbarTitle}>📝 Registrar Nova Ata</Text>
+        <Text style={[themeStyles.topbarTitle]}>Registrar Nova Ata</Text>
 
-        <Text style={themeStyles.label}>Título da Ata *</Text>
+        <Text style={themeStyles.label}>Título da Ata</Text>
         <TextInput 
           style={themeStyles.input} 
           value={titulo} 
@@ -136,7 +138,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           placeholderTextColor="#555" 
         />
 
-        <Text style={themeStyles.label}>Data *</Text>
+        <Text style={themeStyles.label}>Data</Text>
         <TextInput 
           style={themeStyles.input} 
           value={data} 
@@ -152,7 +154,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
             }
             setData(dataFormatada);
           }} 
-          placeholder="dd/mm/aaaa" 
+          placeholder="DD/MM/AAAA" 
           maxLength={10} 
           keyboardType="numeric" 
           placeholderTextColor="#555" 
@@ -168,7 +170,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           placeholderTextColor="#555" 
         />
 
-        <Text style={themeStyles.label}>Conteúdo da Ata *</Text>
+        <Text style={themeStyles.label}>Conteúdo da Ata</Text>
         <TextInput 
           style={[themeStyles.input, themeStyles.textArea]} 
           value={conteudo} 
@@ -184,16 +186,19 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           style={[themeStyles.btnSecondary, documento && themeStyles.btnSecondaryActive]} 
           onPress={selecionarDocumento}
         >
-          <Text style={themeStyles.btnSecondaryText}>
-            {documento ? `📎 PDF Selecionado: ${documento.name}` : "📂 Selecionar PDF do Dispositivo"}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
+  <Folder size={18} color="#ffffff" /> 
+  <Text style={themeStyles.btnSecondaryText}>
+    {documento ? `PDF Selecionado: ${documento.name}` : "Selecionar PDF do Dispositivo"}
+  </Text>
+</View>
         </TouchableOpacity>
 
         {enviando ? (
           <ActivityIndicator size="large" color="#0a84ff" style={{ marginTop: 24 }} />
         ) : (
           <TouchableOpacity style={themeStyles.btnSave} onPress={salvarAta}>
-            <Text style={themeStyles.btnSaveText}>💾 Gravar Ata no Sistema</Text>
+            <Text style={themeStyles.btnSaveText}>Gravar Ata no Sistema</Text>
           </TouchableOpacity>
         )}
       </View>
