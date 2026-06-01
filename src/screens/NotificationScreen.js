@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Alert, Platform } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Alert, Platform, Image } from "react-native";
 import { collection, onSnapshot, addDoc, getDocs, query, orderBy, serverTimestamp, doc, deleteDoc } from "firebase/firestore";
 import { Calendar, MapPin, Plus, Trash2 } from "lucide-react-native";
 import { db } from "../config/firebase";
@@ -111,7 +111,13 @@ export default function NotificationScreen({ user }) {
   return (
     <View style={themeStyles.container}>
       <View style={themeStyles.topbar}>
-        <Text style={themeStyles.topbarTitle}>Reuniões</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={themeStyles.topbarTitle}>Reuniões</Text>
+            <Image
+              source={require("../../assets/alegre.png")}
+              style={{ width: 100, height: 50, marginLeft: -30}}
+            />
+        </View>
         {temPermissao && (
           <TouchableOpacity style={themeStyles.btnAdd} onPress={() => setModalVisible(true)}>
             <Text style={themeStyles.btnAddText}>+ Nova</Text>

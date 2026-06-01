@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Modal } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Modal, Image } from "react-native";
 import { collection, onSnapshot, doc, updateDoc, query, orderBy } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { themeStyles } from "../constants/themeStyles";
@@ -59,7 +59,13 @@ export default function PresenceScreen({ user }) {
   return (
     <View style={themeStyles.container}>
       <View style={themeStyles.topbar}>
-        <Text style={themeStyles.topbarTitle}>Presença</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text style={themeStyles.topbarTitle}>Presença</Text>
+                  <Image
+                    source={require("../../assets/alegre.png")}
+                    style={{ width: 100, height: 50, marginLeft: -30}}
+                  />
+                </View>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20 }}>

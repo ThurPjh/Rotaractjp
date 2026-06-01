@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image, ScrollView } from "react-native";
 import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { COLORS } from "../constants/colors";
@@ -67,7 +67,13 @@ export default function HomeScreen({ user }) {
     <ScrollView style={themeStyles.container} contentContainerStyle={{ paddingBottom: 32 }}>
       
       <View style={themeStyles.topbar}>
-        <Text style={themeStyles.topbarTitle}>Rotaract</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={themeStyles.topbarTitle}>Rotaract</Text>
+          <Image
+            source={require("../../assets/alegre.png")}
+            style={{ width: 100, height: 50, marginLeft: -30}}
+          />
+        </View>
         <View style={themeStyles.tagBlue}>
           <Text style={themeStyles.tagTextBlue}>
             {cargoUsuario.charAt(0).toUpperCase() + cargoUsuario.slice(1)}
@@ -140,7 +146,7 @@ export default function HomeScreen({ user }) {
           </Text>
         </View>
       </View>
-
+    
     </ScrollView>
   );
 }

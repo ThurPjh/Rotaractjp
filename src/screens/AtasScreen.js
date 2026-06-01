@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { 
-  View, 
-  Text, 
-  FlatList, 
-  ActivityIndicator, 
-  Alert, 
-  Linking, 
-  TouchableOpacity,
-  Platform 
-} from "react-native";
+  View, Text, FlatList, ActivityIndicator, Alert, Linking, TouchableOpacity, Platform, Image} from "react-native";
 // 1. Adicionado o 'doc' e 'deleteDoc' para o Firebase
 import { collection, onSnapshot, query, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../config/firebase"; 
@@ -165,7 +157,13 @@ export default function AtasScreen({ irParaCriarAta, user }) {
   return (
     <View style={themeStyles.container}>
       <View style={themeStyles.topbar}>
-        <Text style={themeStyles.topbarTitle}>Atas das Reuniões</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text style={themeStyles.topbarTitle}>Atas</Text>
+                  <Image
+                    source={require("../../assets/alegre.png")}
+                    style={{ width: 100, height: 50, marginLeft: -30}}
+                  />
+                </View>
         <TouchableOpacity style={themeStyles.btnAdd} onPress={irParaCriarAta}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Plus size={16} color="#fff" style={{ marginRight: 4 }} />

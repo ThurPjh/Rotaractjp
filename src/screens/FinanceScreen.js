@@ -7,7 +7,8 @@ import {
   Modal, 
   TextInput,
   Alert,
-  Platform
+  Platform,
+  Image
 } from "react-native";
 // 1. Adicionado o 'doc' e 'deleteDoc' na importação do Firestore
 import { collection, onSnapshot, addDoc, query, orderBy, serverTimestamp, doc, deleteDoc } from "firebase/firestore";
@@ -147,7 +148,13 @@ export default function FinanceScreen({ user }) {
   return (
     <View style={themeStyles.container}>
       <View style={themeStyles.topbar}>
-        <Text style={themeStyles.topbarTitle}>Tesouraria</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text style={themeStyles.topbarTitle}>Tesouraria</Text>
+                  <Image
+                    source={require("../../assets/alegre.png")}
+                    style={{ width: 100, height: 50, marginLeft: -30}}
+                  />
+                </View>
         {canEdit && (
           <TouchableOpacity style={themeStyles.btnAdd} onPress={() => setModalVisible(true)}>
             <Text style={themeStyles.btnAddText}>+ Lançar</Text>
