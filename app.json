@@ -26,8 +26,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "57782b5f-2c97-40f4-b1fe-fceafc2b4801"
+        "projectId": "514cc7b7-71be-46ae-bd2a-c619ac8e322e"
       }
-    }
+    },
+    "owner": "thur.pjh"
   }
 }
