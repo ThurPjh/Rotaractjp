@@ -134,7 +134,7 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           style={themeStyles.input} 
           value={titulo} 
           onChangeText={setTitulo} 
-          placeholder="Ex: Ata Reunião 15" 
+          placeholder="Ex: Ata 15" 
           placeholderTextColor="#555" 
         />
 
@@ -159,15 +159,6 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           keyboardType="numeric" 
           placeholderTextColor="#555" 
           disabled={enviando}
-        />
-
-        <Text style={themeStyles.label}>Local</Text>
-        <TextInput 
-          style={themeStyles.input} 
-          value={local} 
-          onChangeText={setLocal} 
-          placeholder="Ex: Casa da Amizade" 
-          placeholderTextColor="#555" 
         />
 
         <Text style={themeStyles.label}>Conteúdo da Ata</Text>
