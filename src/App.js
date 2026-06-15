@@ -17,12 +17,16 @@ import ProfileScreen from "./screens/ProfileScreen";
 import CriarAtaScreen from "./screens/CriarAtaScreen";
 
 export default function App() {
+  // FLUXO REAL: Usuário começa deslogado para passar pela autenticação do Firebase
   const [user, setUser] = useState(null);
+
+  // ABA INICIAL: Aplicativo inicia na aba de Início após o login
   const [tab, setTab] = useState("home");
+  
   const [notifications, setNotifications] = useState(INITIAL_NOTIFS);
   const [presenceEvents, setPresenceEvents] = useState(INITIAL_PRESENCE);
 
-  // 2. ARRAY DE PROPRIEDADES ATUALIZADO PASSANDO O COMPONENTE DO ÍCONE DIRETO
+  // ARRAY DE PROPRIEDADES ATUALIZADO PASSANDO O COMPONENTE DO ÍCONE DIRETO
   const navItems = [
     { id: "home", icon: Home, label: "Início" },
     { id: "notif", icon: Users, label: "Reuniões" },
@@ -60,7 +64,7 @@ export default function App() {
         {navItems.map(n => {
           const isActive = tab === n.id;
           
-          // 3. CAPTURA O COMPONENTE DO ÍCONE DA LISTA DINAMICAMENTE
+          // CAPTURA O COMPONENTE DO ÍCONE DA LISTA DINAMICAMENTE
           const IconComponent = n.icon;
 
           return (
@@ -69,7 +73,7 @@ export default function App() {
               style={[styles.navItem, isActive && styles.navItemActive]} 
               onPress={() => setTab(n.id)}
             >
-              {/* 4. RENDERIZA O ÍCONE CONTROLANDO A COR E OPACIDADE DINAMICAMENTE */}
+              {/* RENDERIZA O ÍCONE CONTROLANDO A COR E OPACIDADE DINAMICAMENTE */}
               <IconComponent 
                 size={20} 
                 color={isActive ? COLORS.PRIMARY : "#666"} 
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0f0f0f", 
     borderTopWidth: 1, 
     borderColor: "#1e1e1e", 
-    paddingVertical: 10, // Diminuído levemente para balancear o tamanho dos novos ícones
+    paddingVertical: 10, 
     paddingHorizontal: 6
   },
   navItem: { 
