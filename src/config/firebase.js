@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; 
+// Importações corretas para o ecossistema móvel
+import { initializeAuth, getReactNativePersistence, getAuth } from "firebase/auth"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA71tZIUuUrwa3QLyiNubmskRU9EdumhwM",
@@ -13,6 +15,18 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 export const db = getFirestore(app);
-export const auth = getAuth(app); 
+
+// Inicialização híbrida (Protege contra o travamento no celular físico)
+let configurationsOfAuth;
+
+try {
+  configurationsOfAuth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} catch (error) {
+  // Caso o Firebase já tenha sido inicializado em outra aba/instância
+  configurationsOfAuth = getAuth(app);
+}
+
+export const auth = configurationsOfAuth;

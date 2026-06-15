@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { 
   View, Text, FlatList, ActivityIndicator, Alert, Linking, TouchableOpacity, Platform, Image} from "react-native";
-// Adicionado o 'orderBy' nas importações do firestore
 import { collection, onSnapshot, query, doc, deleteDoc, orderBy } from "firebase/firestore";
 import { db } from "../config/firebase"; 
 import { themeStyles } from "../constants/themeStyles";
 
-// Importação dos Ícones profissionais do Lucide
-import { Calendar, MapPin, Users, FileText, Plus, Trash2 } from "lucide-react-native";
 
-// Recebendo o 'user' via props para controle de privilégios de exclusão
+import { Calendar, MapPin, Users, FileText, Plus, Trash2, BookOpen } from "lucide-react-native";
+
+
+const URL_REGIMENTO_INTERNO = "https://res.cloudinary.com/dnicdt3qe/raw/upload/v1781492503/pwdd2nxcajud0iu0uv5c";
+
+
 export default function AtasScreen({ irParaCriarAta, user }) {
   const [atas, setAtas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,6 @@ export default function AtasScreen({ irParaCriarAta, user }) {
   useEffect(() => {
     const colecaoAtas = collection(db, "atas");
     
-    // ORDENAÇÃO ADICIONADA AQUI: Ordena por criadoEm do mais novo para o mais antigo
     const q = query(colecaoAtas, orderBy("criadoEm", "desc")); 
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -43,7 +44,7 @@ export default function AtasScreen({ irParaCriarAta, user }) {
 
   // Função nativa de exclusão com travas de segurança
   async function deletarAta(idAta, tituloAta) {
-    const executarDelecao = async () => {
+    const ejecutarDelecao = async () => {
       try {
         await deleteDoc(doc(db, "atas", idAta));
         if (Platform.OS === 'web') alert("Ata excluída com sucesso!");
@@ -58,14 +59,14 @@ export default function AtasScreen({ irParaCriarAta, user }) {
     // Alerta específico por plataforma
     if (Platform.OS === 'web') {
       const confirmar = window.confirm(`Tem certeza que deseja deletar a "${tituloAta}"?`);
-      if (confirmar) executarDelecao();
+      if (confirmar) ejecutarDelecao();
     } else {
       Alert.alert(
         "Excluir Ata",
         `Tem certeza que deseja excluir a "${tituloAta}"? Esta ação não pode ser desfeita.`,
         [
           { text: "Cancelar", style: "cancel" },
-          { text: "Excluir", style: "destructive", onPress: executarDelecao }
+          { text: "Excluir", style: "destructive", onPress: ejecutarDelecao }
         ]
       );
     }
@@ -93,7 +94,6 @@ export default function AtasScreen({ irParaCriarAta, user }) {
     <View style={themeStyles.card}>
       <View style={[themeStyles.cardHeader, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}>
         
-        {/* Envelopado em View para alinhar ícone + texto perfeitamente */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Calendar size={14} color="#E91467" />
           <Text style={[themeStyles.metaText, { marginTop: 0 }]}>{item.data || "Data não informada"}</Text>
@@ -155,6 +155,7 @@ export default function AtasScreen({ irParaCriarAta, user }) {
 
   return (
     <View style={themeStyles.container}>
+      {/* Topbar original */}
       <View style={themeStyles.topbar}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text style={themeStyles.topbarTitle}>Atas</Text>
@@ -170,7 +171,38 @@ export default function AtasScreen({ irParaCriarAta, user }) {
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* Banner do Regimento Interno */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 5 }}>
+        <TouchableOpacity 
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            backgroundColor: "#16161a",
+            borderColor: "#E91467",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 14,
+          }}
+          activeOpacity={0.8}
+          onPress={() => abrirDocumento(URL_REGIMENTO_INTERNO)}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+            <BookOpen size={20} color="#E91467" />
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Regimento Interno</Text>
+              <Text style={{ color: "#666", fontSize: 11, marginTop: 2 }}>Consulte os direitos e deveres dos associados</Text>
+            </View>
+          </View>
+          
+          <View style={{ backgroundColor: "#1e2026", paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
+            <Text style={{ color: "#E91467", fontSize: 11, fontWeight: "700" }}>LER PDF</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
       
+      {/* Lista de Atas original */}
       {atas.length === 0 ? (
         <View style={themeStyles.empty}>
           <Text style={themeStyles.emptyText}>Nenhuma ata cadastrada no Firestore.</Text>
@@ -180,7 +212,7 @@ export default function AtasScreen({ irParaCriarAta, user }) {
           data={atas}
           keyExtractor={(item) => item.id}
           renderItem={renderAta}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 20 }}
         />
       )}
     </View>

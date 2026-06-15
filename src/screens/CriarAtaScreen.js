@@ -6,6 +6,8 @@ import { db } from "../config/firebase";
 import { themeStyles } from "../constants/themeStyles";
 import { Calendar, MapPin, Users, FileText, Plus, Trash2, Folder } from "lucide-react-native";
 
+// IMPORTAÇÃO DO CALENDÁRIO NATIVO
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 // ==========================================
 // CONFIGURAÇÃO DO CLOUDINARY
@@ -17,9 +19,28 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
   const [titulo, setTitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
   const [local, setLocal] = useState("");
-  const [data, setData] = useState("");
+  const [data, setData] = useState(""); // Mantém a string DD/MM/AAAA para o Firebase
   const [documento, setDocumento] = useState(null);
   const [enviando, setEnviando] = useState(false);
+
+  // Estados para o controle do calendário nativo
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [dateValue, setDateValue] = useState(new Date());
+
+  // Função que lida com a escolha da data no calendário nativo
+  const onChangeData = (event, selectedDate) => {
+    setShowCalendar(false);
+
+    if (selectedDate) {
+      setDateValue(selectedDate);
+
+      const dia = String(selectedDate.getDate()).padStart(2, '0');
+      const mes = String(selectedDate.getMonth() + 1).padStart(2, '0'); 
+      const ano = selectedDate.getFullYear();
+      
+      setData(`${dia}/${mes}/${ano}`);
+    }
+  };
 
   // Seleciona o PDF baixado do WhatsApp
   const selecionarDocumento = async () => {
@@ -33,7 +54,8 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
         setDocumento(resultado.assets[0]);
       }
     } catch (err) {
-      Alert.alert("Erro", "Não foi possível selecionar o arquivo.");
+      if (Platform.OS === 'web') alert("Não foi possível selecionar o arquivo.");
+      else Alert.alert("Erro", "Não foi possível selecionar o arquivo.");
     }
   };
 
@@ -42,8 +64,6 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
     const urlApi = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
     
     const formData = new FormData();
-    
-    // Remove qualquer extensão do nome para evitar o bug do ".pdf.pdf" que bloqueia a entrega
     const nomeLimpo = arquivo.name.replace(/\.[^/.]+$/, "");
     
     if (Platform.OS === 'web') {
@@ -72,13 +92,13 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
     }
 
     const dadosDoUpload = await resposta.json();
-    return dadosDoUpload.secure_url; // Retorna a URL limpa e original do Cloudinary
+    return dadosDoUpload.secure_url;
   };
 
   const salvarAta = async () => {
-    // Validação básica dos campos obrigatórios
     if (!titulo || !conteudo || !data) {
-      Alert.alert("Atenção", "Por favor, preencha Título, Data e Conteúdo da ata.");
+      if (Platform.OS === 'web') alert("Por favor, preencha Título, Data e Conteúdo da ata.");
+      else Alert.alert("Atenção", "Por favor, preencha Título, Data e Conteúdo da ata.");
       return;
     }
 
@@ -86,38 +106,37 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
     let urlDocumentoSalvo = "";
 
     try {
-      // 1. Se tem documento, faz o upload e pega a URL original
       if (documento) {
         urlDocumentoSalvo = await fazerUploadCloudinary(documento);
       }
 
-      // 2. Salva no Firebase Firestore exatamente os campos que a sua lista precisa
       await addDoc(collection(db, "atas"), {
         titulo: titulo.trim(),
         conteudo: conteudo.trim(),
         local: local.trim(),
         data: data.trim(),
-        urlDocumento: urlDocumentoSalvo, // URL salva sem nenhuma alteração perigosa
+        urlDocumento: urlDocumentoSalvo,
         criadoEm: new Date(),
         nomesPresentes: [], 
         quantidadePresentes: 0
       });
 
-      Alert.alert("Sucesso", "Ata registrada com sucesso!");
+      if (Platform.OS === 'web') alert("Ata registrada com sucesso!");
+      else Alert.alert("Sucesso", "Ata registrada com sucesso!");
       
-      // Limpa o formulário
       setTitulo("");
       setConteudo("");
       setLocal("");
       setData("");
       setDocumento(null);
+      setDateValue(new Date());
       
-      // Volta para a lista de atas
       irParaListaAtas();
       
     } catch (error) {
       console.error("Erro ao salvar no Firebase:", error);
-      Alert.alert("Erro", "Houve um problema ao salvar a ata no sistema.");
+      if (Platform.OS === 'web') alert("Houve um problema ao salvar a ata no sistema.");
+      else Alert.alert("Erro", "Houve um problema ao salvar a ata no sistema.");
     } finally {
       setEnviando(false);
     }
@@ -125,7 +144,6 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
 
   return (
     <ScrollView contentContainerStyle={[themeStyles.container, { paddingVertical: 20 }]}>
-      {/* Box centralizado seguindo o padrão de inputs escuros do seu Modal */}
       <View style={themeStyles.formBox}>
         <Text style={[themeStyles.topbarTitle]}>Registrar Nova Ata</Text>
 
@@ -139,27 +157,45 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
         />
 
         <Text style={themeStyles.label}>Data</Text>
-        <TextInput 
-          style={themeStyles.input} 
-          value={data} 
-          onChangeText={t => {
+        
+        {/* 🌐 SE FOR WEB (PC): Renderiza um campo de texto convencional para digitação manual */}
+        {Platform.OS === 'web' ? (
+          <View style={{ position: 'relative', justifyContent: 'center' }}>
+            <TextInput
+              style={[themeStyles.input, { paddingRight: 40 }]}
+              value={data}
+              onChangeText={setData}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor="#555"
+            />
+            <Calendar size={18} color={data ? "#0a84ff" : "#555"} style={{ position: 'absolute', right: 15 }} />
+          </View>
+        ) : (
+          /* 📱 SE FOR MOBILE: Mantém o botão touch que abre o modal nativo */
+          <TouchableOpacity 
+            style={[themeStyles.input, { justifyContent: "center" }]} 
+            onPress={() => !enviando && setShowCalendar(true)}
+            activeOpacity={0.7}
+          >
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Text style={{ color: data ? "#ffffff" : "#555", fontSize: 16 }}>
+                {data || "Selecionar Data da Reunião"}
+              </Text>
+              <Calendar size={18} color={data ? "#0a84ff" : "#555"} />
+            </View>
+          </TouchableOpacity>
+        )}
 
-            const apenasNumeros = t.replace(/\D/g, "");
-            let dataFormatada = apenasNumeros;
-            if (apenasNumeros.length > 2) {
-              dataFormatada = `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2)}`;
-            }
-            if (apenasNumeros.length > 4) {
-              dataFormatada = `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2, 4)}/${apenasNumeros.slice(4, 8)}`;
-            }
-            setData(dataFormatada);
-          }} 
-          placeholder="DD/MM/AAAA" 
-          maxLength={10} 
-          keyboardType="numeric" 
-          placeholderTextColor="#555" 
-          disabled={enviando}
-        />
+        {/* Componente do Calendário Nativo (Apenas roda no mobile) */}
+        {showCalendar && Platform.OS !== 'web' && (
+          <DateTimePicker
+            value={dateValue}
+            mode="date"
+            display="default"
+            onChange={onChangeData}
+            maximumDate={new Date()} 
+          />
+        )}
 
         <Text style={themeStyles.label}>Conteúdo da Ata</Text>
         <TextInput 
@@ -178,11 +214,11 @@ export default function CriarAtaScreen({ irParaListaAtas }) {
           onPress={selecionarDocumento}
         >
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-  <Folder size={18} color="#ffffff" /> 
-  <Text style={themeStyles.btnSecondaryText}>
-    {documento ? `PDF Selecionado: ${documento.name}` : "Selecionar PDF do Dispositivo"}
-  </Text>
-</View>
+            <Folder size={18} color="#ffffff" /> 
+            <Text style={themeStyles.btnSecondaryText}>
+              {documento ? `PDF Selecionado: ${documento.name}` : "Selecionar PDF do Dispositivo"}
+            </Text>
+          </View>
         </TouchableOpacity>
 
         {enviando ? (

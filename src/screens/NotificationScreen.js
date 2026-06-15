@@ -5,8 +5,8 @@ import { Calendar, MapPin, Plus, Trash2 } from "lucide-react-native";
 import { db } from "../config/firebase";
 import { themeStyles } from "../constants/themeStyles";
 
-
-//import DateTimePicker from '@react-native-community/datetimepicker';
+// 🛠️ CORREÇÃO 1: Descomentado a importação do calendário nativo para o celular não crashar
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function NotificationScreen({ user }) {
   const [reunioes, setReunioes] = useState([]);
@@ -24,20 +24,24 @@ export default function NotificationScreen({ user }) {
     });
   }, []);
 
-  // Função auxiliar para o clique do calendário no celular
+  // 🛠️ CORREÇÃO 2: Função nativa blindada contra loops e crashes no Android
   const onChangeDataNativa = (event, selectedDate) => {
+    // Sempre fecha o seletor no Android após qualquer interação (Ok ou Cancelar)
+    setShowDatePicker(false);
+
     if (event.type === "dismissed") {
-      setShowDatePicker(false);
       return;
     }
-    const currentDate = selectedDate || dataObjeto;
-    setShowDatePicker(Platform.OS === 'ios');
-    setDataObjeto(currentDate);
 
-    const dia = String(currentDate.getDate()).padStart(2, '0');
-    const mes = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const ano = currentDate.getFullYear();
-    setForm(p => ({ ...p, date: `${dia}/${mes}/${ano}` }));
+    if (selectedDate) {
+      setDataObjeto(selectedDate);
+
+      const dia = String(selectedDate.getDate()).padStart(2, '0');
+      const mes = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const ano = selectedDate.getFullYear();
+      
+      setForm(p => ({ ...p, date: `${dia}/${mes}/${ano}` }));
+    }
   };
 
   const onChangeDataWeb = (textoData) => {
@@ -113,10 +117,10 @@ export default function NotificationScreen({ user }) {
       <View style={themeStyles.topbar}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text style={themeStyles.topbarTitle}>Reuniões</Text>
-            <Image
-              source={require("../../assets/alegre.png")}
-              style={{ width: 100, height: 50, marginLeft: -30}}
-            />
+          <Image
+            source={require("../../assets/alegre.png")}
+            style={{ width: 100, height: 50, marginLeft: -30}}
+          />
         </View>
         {temPermissao && (
           <TouchableOpacity style={themeStyles.btnAdd} onPress={() => setModalVisible(true)}>
@@ -134,17 +138,15 @@ export default function NotificationScreen({ user }) {
           reunioes.map(n => (
             <View style={themeStyles.card} key={n.id}>
               <Text style={themeStyles.cardTitle}>{n.title}</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-                  <Calendar size={14} color="#E91467" style={{ marginRight: 4 }} />
-                  <Text style={themeStyles.metaText}> {n.date}</Text>
-                </View>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+                <Calendar size={14} color="#E91467" style={{ marginRight: 4 }} />
+                <Text style={themeStyles.metaText}> {n.date}</Text>
+              </View>
 
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-                  <MapPin size={14} color="#E91467" style={{ marginRight: 4 }} />
-                  <Text style={themeStyles.metaText}> {n.location}</Text>
-                </View>
-       
-              
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+                <MapPin size={14} color="#E91467" style={{ marginRight: 4 }} />
+                <Text style={themeStyles.metaText}> {n.location}</Text>
+              </View>
 
               {/* Botão de excluir visível apenas para a diretoria */}
               {temPermissao && (
@@ -156,7 +158,6 @@ export default function NotificationScreen({ user }) {
                 </TouchableOpacity>
               )}
             </View>
-
           ))
         )}
       </ScrollView>
@@ -251,9 +252,7 @@ export default function NotificationScreen({ user }) {
     </View>
   );
 
-  //Função deletar reunião
   async function deletarReuniao(idReuniao, titulo) {
-    // Função auxiliar para executar a deleção após confirmação
     const executarDelecao = async () => {
       try {
         await deleteDoc(doc(db, "reunioes", idReuniao));
@@ -265,7 +264,6 @@ export default function NotificationScreen({ user }) {
       }
     };
 
-    // Alerta de segurança para o Admin não clicar e apagar sem querer
     if (Platform.OS === 'web') {
       const confirmar = window.confirm(`Tem certeza que deseja excluir a reunião "${titulo}"?`);
       if (confirmar) executarDelecao();
