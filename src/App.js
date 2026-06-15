@@ -17,16 +17,13 @@ import ProfileScreen from "./screens/ProfileScreen";
 import CriarAtaScreen from "./screens/CriarAtaScreen";
 
 export default function App() {
-  // FLUXO REAL: Usuário começa deslogado para passar pela autenticação do Firebase
   const [user, setUser] = useState(null);
 
-  // ABA INICIAL: Aplicativo inicia na aba de Início após o login
   const [tab, setTab] = useState("home");
   
   const [notifications, setNotifications] = useState(INITIAL_NOTIFS);
   const [presenceEvents, setPresenceEvents] = useState(INITIAL_PRESENCE);
 
-  // ARRAY DE PROPRIEDADES ATUALIZADO PASSANDO O COMPONENTE DO ÍCONE DIRETO
   const navItems = [
     { id: "home", icon: Home, label: "Início" },
     { id: "notif", icon: Users, label: "Reuniões" },

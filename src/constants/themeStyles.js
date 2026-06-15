@@ -1,15 +1,12 @@
 import { StyleSheet } from "react-native";
 import { COLORS } from "./colors";
 
-// Garanta que no seu arquivo colors.js existam essas chaves, 
-// ou caso contrário, o código usará os padrões escuros definidos abaixo:
 const BG_DARK = "#0d0e12";
 const CARD_DARK = "#16171d";
 const BORDER_DARK = "#1e2026";
 const INPUT_BG = "#111216";
 
 export const themeStyles = StyleSheet.create({
-  // Tela principal
   container: { 
     flex: 1, 
     backgroundColor: COLORS.BACKGROUND || BG_DARK,
@@ -17,7 +14,6 @@ export const themeStyles = StyleSheet.create({
     paddingBottom: 16
   },
   
-  // Topbar / Cabeçalho superior
   topbar: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
@@ -30,7 +26,8 @@ export const themeStyles = StyleSheet.create({
   topbarTitle: { 
     fontSize: 20, 
     fontWeight: "700", 
-    color: "#fff"
+    color: "#fff",
+    marginBottom: 8
   },
 
   topbarTitleNot: { 
@@ -42,7 +39,6 @@ export const themeStyles = StyleSheet.create({
   },
   
   
-  // Botões de Ação Principais (Adicionar/Nova Ata)
   btnAdd: { 
     backgroundColor: COLORS.PRIMARY || "#003399", 
     paddingHorizontal: 14, 
@@ -55,7 +51,6 @@ export const themeStyles = StyleSheet.create({
     fontSize: 13 
   },
 
-  // Cards de Listagem (Atas, Notificações, etc)
   card: { 
     backgroundColor: COLORS.CARD_BG || CARD_DARK, 
     borderWidth: 1, 
@@ -78,16 +73,15 @@ export const themeStyles = StyleSheet.create({
   },
   metaText: { 
     fontSize: 13, 
-    color: "#a0aec0" // Texto secundário claro
+    color: "#a0aec0" 
   },
   descText: { 
     fontSize: 14, 
-    color: "#718096", // Conteúdo / Resumos
+    color: "#718096", 
     marginTop: 8,
     lineHeight: 20
   },
 
-  // Tags com opacidade (estilo as de Notificações)
   tagBlue: { 
     backgroundColor: "rgba(10,132,255,0.15)",
     paddingHorizontal: 8,
@@ -100,11 +94,10 @@ export const themeStyles = StyleSheet.create({
     color: "#0a84ff" 
   },
 
-  // Formulários e Telas de Criação
   formBox: {
     backgroundColor: COLORS.CARD_BG || CARD_DARK,
     width: "100%",
-    maxWidth: 600, // Centralização perfeita na web
+    maxWidth: 600, 
     padding: 24,
     borderRadius: 16,
     borderWidth: 1,
@@ -137,7 +130,6 @@ export const themeStyles = StyleSheet.create({
 
   ql: { padding: 6 },
 
-  // Botões Grandes de Formulário (Salvar/Gravar)
   btnSave: { 
     padding: 14, 
     backgroundColor: COLORS.PRIMARY || "#003399", 
@@ -152,7 +144,6 @@ export const themeStyles = StyleSheet.create({
     fontSize: 16
   },
 
-  // Botões Secundários (Selecionar Arquivo)
   btnSecondary: {
     backgroundColor: "#1e2026",
     borderWidth: 1,
@@ -173,7 +164,6 @@ export const themeStyles = StyleSheet.create({
     backgroundColor: "rgba(10,132,255,0.05)"
   },
 
-  // Estados vazios ou carregamento
   empty: { 
     padding: 40, 
     alignItems: "center",

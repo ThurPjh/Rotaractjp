@@ -41,9 +41,32 @@ export default function FinanceScreen({ user }) {
     userRole.toLowerCase() === "admin" ||
     !userRole;
 
+  // Função para aplicar a máscara de moeda (R$) enquanto o usuário digita
+  function aplicarMascaraDinheiro(texto) {
+    // Remove tudo que não for número
+    const apenasNumeros = texto.replace(/\D/g, "");
+    
+    if (!apenasNumeros) return "";
+
+    // Transforma em centavos (ex: 150 vira 1.50)
+    const valorNumerico = (parseFloat(apenasNumeros) / 100).toFixed(2);
+    
+    // Formata com pontos e vírgulas no padrão brasileiro
+    return valorNumerico
+      .replace(".", ",")
+      .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+  }
+
+  // Converter o valor mascarado (ex: "1.500,50") de volta para float puro antes de salvar
+  function converterMascaraParaFloat(textoMascarado) {
+    if (!textoMascarado) return 0;
+    const limpo = textoMascarado.replace(/\./g, "").replace(",", ".");
+    return parseFloat(limpo) || 0;
+  }
+
   // 3. Função nativa de exclusão do lançamento financeiro
   async function deletarLancamento(idLancamento, descricao, valor) {
-    const executarDelecao = async () => {
+    const ejecutarDelecao = async () => {
       try {
         await deleteDoc(doc(db, "financas", idLancamento));
         if (Platform.OS === 'web') alert("Lançamento removido com sucesso!");
@@ -60,14 +83,14 @@ export default function FinanceScreen({ user }) {
     // Alerta de segurança cross-platform para evitar acidentes no caixa do clube
     if (Platform.OS === 'web') {
       const confirmar = window.confirm(`Atenção: Deseja mesmo excluir o lançamento "${descricao}" no valor de ${valorFormatado}? Isso mudará o saldo geral.`);
-      if (confirmar) executarDelecao();
+      if (confirmar) ejecutarDelecao();
     } else {
       Alert.alert(
         "Estornar/Excluir Lançamento",
         `Deseja mesmo excluir o lançamento "${descricao}" no valor de ${valorFormatado}? O saldo geral será recalculado automaticamente.`,
         [
           { text: "Cancelar", style: "cancel" },
-          { text: "Excluir", style: "destructive", onPress: executarDelecao }
+          { text: "Excluir", style: "destructive", onPress: ejecutarDelecao }
         ]
       );
     }
@@ -78,7 +101,9 @@ export default function FinanceScreen({ user }) {
   const totalSaidas = finance.filter(f => f.amount < 0).reduce((s, f) => s + Math.abs(f.amount), 0);
 
   async function addTransaction() {
-    const val = parseFloat(form.amount);
+    // Converte o valor da máscara para float limpo para salvar no DB
+    const val = converterMascaraParaFloat(form.amount);
+    
     if (!val || !form.desc || !form.date) {
       if (Platform.OS === 'web') alert("Por favor, preencha todos os campos obrigatórios.");
       else Alert.alert("Atenção", "Por favor, preencha todos os campos obrigatórios.");
@@ -149,12 +174,12 @@ export default function FinanceScreen({ user }) {
     <View style={themeStyles.container}>
       <View style={themeStyles.topbar}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Text style={themeStyles.topbarTitle}>Tesouraria</Text>
-                  <Image
-                    source={require("../../assets/alegre.png")}
-                    style={{ width: 100, height: 50, marginLeft: -30}}
-                  />
-                </View>
+          <Text style={themeStyles.topbarTitle}>Tesouraria</Text>
+          <Image
+            source={require("../../assets/alegre.png")}
+            style={{ width: 100, height: 50, marginLeft: -30}}
+          />
+        </View>
         {canEdit && (
           <TouchableOpacity style={themeStyles.btnAdd} onPress={() => setModalVisible(true)}>
             <Text style={themeStyles.btnAddText}>+ Lançar</Text>
@@ -237,7 +262,7 @@ export default function FinanceScreen({ user }) {
                 {f.amount > 0 ? "+" : ""}{formatCurrency(f.amount)}
               </Text>
 
-              {/* 4. BOTÃO DE EXCLUIR LANÇAMENTO (Apenas visível para a diretoria autorizada) */}
+              {/* 4. BOTÃO DE EXCLUIR LANÇAMENTO */}
               {canEdit && (
                 <TouchableOpacity 
                   onPress={() => deletarLancamento(f.id, f.desc, f.amount)}
@@ -279,7 +304,20 @@ export default function FinanceScreen({ user }) {
             <TextInput style={themeStyles.input} value={form.desc} onChangeText={t=>setForm(p=>({...p,desc:t}))} placeholder="Ex: Venda de rifas" placeholderTextColor="#444" outlineStyle="none" disabled={loading} />
 
             <Text style={themeStyles.label}>Valor (R$)</Text>
-            <TextInput style={themeStyles.input} value={form.amount} onChangeText={t=>setForm(p=>({...p,amount:t}))} placeholder="0.00" keyboardType="numeric" placeholderTextColor="#444" outlineStyle="none" disabled={loading} />
+            <TextInput 
+              style={themeStyles.input} 
+              value={form.amount} 
+              onChangeText={t => {
+                // Aplica a máscara em tempo real ao digitar
+                const valorMascarado = aplicarMascaraDinheiro(t);
+                setForm(p => ({ ...p, amount: valorMascarado }));
+              }} 
+              placeholder="0,00" 
+              keyboardType="numeric" 
+              placeholderTextColor="#444" 
+              outlineStyle="none" 
+              disabled={loading} 
+            />
 
             <Text style={themeStyles.label}>Data</Text>
             <TextInput 

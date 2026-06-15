@@ -20,6 +20,14 @@ export default function ProfileScreen({ user, setUser, onLogout }) {
   const [loadingMember, setLoadingMember] = useState(false);
   const [newMember, setNewMember] = useState({ name: "", email: "", role: "associado", password: "" });
 
+  // Lista de cargos válidos no Rotaract para o seletor visual
+  const listaCargosDisponiveis = [
+    { id: "associado", label: "Associado" },
+    { id: "secretario", label: "Secretário" },
+    { id: "tesoureiro", label: "Tesoureiro" },
+    { id: "presidente", label: "Presidente" }
+  ];
+
   function saveProfile() {
     setUser(prev => ({ ...prev, ...form }));
     setEditing(false);
@@ -135,14 +143,14 @@ export default function ProfileScreen({ user, setUser, onLogout }) {
       </View>
 
       <View style={{ padding: 20 }}>
-        {/* Painel Administrativo Exclusivo da Diretoria */}
+        {/* Painel Administrativo da Diretoria */}
         {isAdmin && (
           <View style={{ marginBottom: 16 }}>
             <TouchableOpacity 
               style={[themeStyles.btnSave, { backgroundColor: COLORS.PRIMARY || "#0a84ff" }]} 
               onPress={() => setIsAddMemberVisible(true)}
             >
-              <Text style={themeStyles.btnSaveText}>+ Cadastrar Novo Sócio</Text>
+              <Text style={[themeStyles.btnSaveText]}>+ Cadastrar Novo Sócio</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -228,14 +236,32 @@ export default function ProfileScreen({ user, setUser, onLogout }) {
               onChangeText={t => setNewMember(p => ({ ...p, password: t }))} 
             />
 
-            <TextInput 
-              style={themeStyles.input} 
-              placeholder="Cargo (ex: presidente, secretario, associado)" 
-              placeholderTextColor="#555"
-              autoCapitalize="none"
-              value={newMember.role}
-              onChangeText={t => setNewMember(p => ({ ...p, role: t }))} 
-            />
+            {/* seletor de cargo */}
+            <Text style={[themeStyles.label, { marginTop: 8, marginBottom: 8 }]}>Selecione o Cargo do Membro:</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+              {listaCargosDisponiveis.map((cargoItem) => {
+                const itemSelecionado = newMember.role === cargoItem.id;
+                return (
+                  <TouchableOpacity
+                    key={cargoItem.id}
+                    onPress={() => setNewMember(p => ({ ...p, role: cargoItem.id }))}
+                    activeOpacity={0.7}
+                    style={{
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      borderRadius: 10,
+                      backgroundColor: itemSelecionado ? (COLORS.PRIMARY || "#0a84ff") : "#111216",
+                      borderWidth: 1,
+                      borderColor: itemSelecionado ? (COLORS.PRIMARY || "#0a84ff") : "#222"
+                    }}
+                  >
+                    <Text style={{ color: itemSelecionado ? "#fff" : "#a0aec0", fontWeight: "600", fontSize: 13 }}>
+                      {cargoItem.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
             
             <TouchableOpacity 
               style={[themeStyles.btnSave, { opacity: loadingMember ? 0.6 : 1, marginTop: 10 }]} 
